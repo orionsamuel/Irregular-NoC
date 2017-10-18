@@ -4,6 +4,7 @@
 using namespace std;
 
 SC_MODULE(flow_control){
+	sc_in<bool> clk;
 	sc_in<sc_int<32> > in_val; //Entrada pra ver se no buffer terá espaço 
 	sc_out<sc_int<32> > in_ack; //Retorno da solicitação se terá espaço
 
@@ -24,9 +25,9 @@ SC_MODULE(flow_control){
 	SC_CTOR(flow_control){
 		flow_control flow("flow");
 		SC_METHOD(request);
-		sensitive << in_val;
+		sensitive << in_val << clk;
 		SC_METHOD(response);
-		sensitive << wok;
+		sensitive << wok << clk;
 	}
 	
 };

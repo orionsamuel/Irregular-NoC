@@ -3,6 +3,7 @@
 #include "flow_control.h"
 #include "buffer.h"
 #include "routing.h"
+#include "arbiter.h"
 #include <vector>
 #include <iostream>
 
@@ -11,6 +12,8 @@ using namespace std;
 SC_MODULE(router){
 	sc_int<32> position;
 	sc_int<32> coreNumbers;
+
+	sc_in<bool> clk;
 	
 	sc_in<sc_int<32> > in_val_N, in_val_E, in_val_S, in_val_W, in_val_L; //Entrada poro controle de fluxo (falta saber como vai ser a entrada para in_val)
 	sc_out<sc_int<32> > in_ack_N, in_ack_E, in_ack_S, in_ack_W, in_ack_L;
@@ -19,7 +22,10 @@ SC_MODULE(router){
 	sc_signal<sc_int<32> > rokN, rokE, rokS, rokW, rokL, rdN, rdE, rdS, rdW, rdL; //Chaveamento //Entrada para o chaveamento no buffer (falta achar a entrada para rd)
 	sc_signal<sc_int<32> > portExit_N, portExit_E, portExit_S, portExit_W, portExit_L, routerDestiny_N, routerDestiny_E, routerDestiny_S, routerDestiny_W, routerDestiny_L; //Entrada e saída do roteamento
 
+
 	sc_int<32> aux_rokN, aux_rokE, aux_rokS, aux_rokW, aux_rokL;
+	sc_int<32> aux_rdN, aux_rdE, aux_rdS, aux_rdW,aux_rdL;
+	sc_int<32> portExitN, portExitE, portExitS, portExitW, portExitL;
 
 	routing_table tabela;
 	
@@ -39,6 +45,8 @@ SC_MODULE(router){
 	flow_control *fcN, *fcE, *fcS, *fcW, *fcL;
 	Buffer *bfN, *bfE, *bfS, *bfW, *bfL;
 	routing *rtgN, *rtgE, *rtgS, *rtgW, *rtgL;
+	arbiter *arbN, *arbE, *arbS, *arbW, *arbL;
+
 	
 
 	
@@ -72,18 +80,36 @@ SC_MODULE(router){
 		rtgW = new routing("rtgW");
 		rtgL = new routing("rtgL");
 
+		//Instanciando os árbitros
+		arbN = new arbiter("arbN");
+		arbE = new arbiter("arbE");
+		arbS = new arbiter("arbS");
+		arbW = new arbiter("arbW");
+		arbL = new arbiter("arbL");
+
+		//Ligando as entradas dos árbitros
+		arbN->portDestiny(portExit_N);
+		arbN->rd(rdN);
+		arbN->clk(clk);
+		arbE->portDestiny(portExit_E);
+		arbE->rd(rdE);
+		arbE->clk(clk);
+		arbS->portDestiny(portExit_S);
+		arbS->rd(rdS);
+		arbS->clk(clk);
+		arbW->portDestiny(portExit_W);
+		arbW->rd(rdW);
+		arbW->clk(clk);
+		arbL->portDestiny(portExit_L);
+		arbL->rd(rdL);
+		arbL->clk(clk);
+
 		//Ligação do roteamento nos buffers
 		rtgN->tabela = tabela;
 		rtgE->tabela = tabela;
 		rtgS->tabela = tabela;
 		rtgW->tabela = tabela;
 		rtgL->tabela = tabela;
-
-		rtgN->position = position;
-		rtgE->position = position;
-		rtgS->position = position;
-		rtgW->position = position;
-		rtgL->position = position;
 
 		rtgN->coreNumbers = coreNumbers;
 		rtgE->coreNumbers = coreNumbers;
@@ -108,6 +134,12 @@ SC_MODULE(router){
 		rtgS->destiny(routerDestiny_S);
 		rtgW->destiny(routerDestiny_W);
 		rtgL->destiny(routerDestiny_L);
+
+		rtgN->clk(clk);
+		rtgE->clk(clk);
+		rtgS->clk(clk);
+		rtgW->clk(clk);
+		rtgL->clk(clk);
 
 
 
@@ -158,43 +190,107 @@ SC_MODULE(router){
 		aux_rokW = rokW;
 		aux_rokL = rokL;
 
-		if(aux_rokN == 1){
+		aux_rdN = rdN;
+		aux_rdE = rdE;
+		aux_rdS = rdS;
+		aux_rdW = rdW;
+		aux_rdL = rdL;
+
+		portExitN = portExit_N;
+		portExitE = portExit_E;
+		portExitS = portExit_S;
+		portExitW = portExit_W;
+		portExitL = portExit_L;
+
+		
+		//Realização do chaveamento das portas
+		if((portExitN == NORTH) && (aux_rdN == 1)){
 			out_portN = bfN->dout;
+		}else if((portExitN == EAST) && (aux_rdN == 1)){
+			out_portE = bfN->dout;
+		}else if((portExitN == SOUTH) && (aux_rdN == 1)){
+			out_portS = bfN->dout;
+		}else if((portExitN == WEST) && (aux_rdN == 1)){
+			out_portW = bfN->dout;
+		}else if((portExitN == LOCAL) && (aux_rdN == 1)){
+			out_portL = bfN->dout;
 		}
 
-		if(aux_rokE == 1){
+		if((portExitE == NORTH) && (aux_rdN == 1)){
+			out_portN = bfE->dout;
+		}else if((portExitE == EAST) && (aux_rdN == 1)){
 			out_portE = bfE->dout;
+		}else if((portExitE == SOUTH) && (aux_rdN == 1)){
+			out_portS = bfE->dout;
+		}else if((portExitE == WEST) && (aux_rdN == 1)){
+			out_portW = bfE->dout;
+		}else if((portExitE == LOCAL) && (aux_rdN == 1)){
+			out_portL = bfE->dout;
 		}
 
-		if(aux_rokS == 1){
+		if((portExitS == NORTH) && (aux_rdN == 1)){
+			out_portN = bfS->dout;
+		}else if((portExitS == EAST) && (aux_rdN == 1)){
+			out_portE = bfS->dout;
+		}else if((portExitS == SOUTH) && (aux_rdN == 1)){
 			out_portS = bfS->dout;
+		}else if((portExitS == WEST) && (aux_rdN == 1)){
+			out_portW = bfS->dout;
+		}else if((portExitS == LOCAL) && (aux_rdN == 1)){
+			out_portL = bfS->dout;
 		}
 
-		if(aux_rokW == 1){
+		if((portExitW == NORTH) && (aux_rdN == 1)){
+			out_portN = bfW->dout;
+		}else if((portExitW == EAST) && (aux_rdN == 1)){
+			out_portE = bfW->dout;
+		}else if((portExitW == SOUTH) && (aux_rdN == 1)){
+			out_portS = bfW->dout;
+		}else if((portExitW == WEST) && (aux_rdN == 1)){
 			out_portW = bfW->dout;
+		}else if((portExitW == LOCAL) && (aux_rdN == 1)){
+			out_portL = bfW->dout;
 		}
 
-		if(aux_rokL == 1){
+		if((portExitL == NORTH) && (aux_rdN == 1)){
+			out_portN = bfL->dout;
+		}else if((portExitL == EAST) && (aux_rdN == 1)){
+			out_portE = bfL->dout;
+		}else if((portExitL == SOUTH) && (aux_rdN == 1)){
+			out_portS = bfL->dout;
+		}else if((portExitL == WEST) && (aux_rdN == 1)){
+			out_portW = bfL->dout;
+		}else if((portExitL == LOCAL) && (aux_rdN == 1)){
 			out_portL = bfL->dout;
 		}
 
 		bfN->din = in_portN;
+		bfN->clk(clk);
 		bfE->din = in_portE;
+		bfE->clk(clk);
 		bfS->din = in_portS;
+		bfS->clk(clk);
 		bfW->din = in_portW;
+		bfW->clk(clk);
 		bfL->din = in_portL;
+		bfL->clk(clk);
 
 		//Ligação dos entradas do controle de fluxo para as portas
 		fcN->in_val(in_val_N);
 		fcN->in_ack(ack_N);
+		fcN->clk(clk);
 		fcE->in_val(in_val_E);
 		fcE->in_ack(ack_E);
+		fcE->clk(clk);
 		fcS->in_val(in_val_S);
 		fcS->in_ack(ack_S);
+		fcS->clk(clk);
 		fcW->in_val(in_val_W);
 		fcW->in_ack(ack_W);
+		fcW->clk(clk);
 		fcL->in_val(in_val_L);
 		fcL->in_ack(ack_L);
+		fcL->clk(clk);
 
 		SC_METHOD(set_ack);
 		sensitive << in_val_N, in_val_E, in_val_S, in_val_W, in_val_L;

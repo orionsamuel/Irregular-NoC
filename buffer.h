@@ -17,6 +17,8 @@ SC_MODULE (Buffer){
 	flit din; //Entrada data + bop + eop
 	flit dout; //Saída que vai para o roteamento
 
+	sc_in<bool> clk;
+
 	sc_in < sc_int<32> > wr; //Entrada que vem do controle de fluxo
 	sc_out< sc_int<32> > wok; //Saída que volta para o buffer
 	sc_in < sc_int<32> > rd; //Entrada que vem do chaveamento
@@ -53,9 +55,10 @@ SC_MODULE (Buffer){
 	}
 
 	SC_CTOR(Buffer) {
-        SC_THREAD(add);
-        SC_THREAD(remove);
-        sensitive << wr << rd;
+        SC_METHOD(add);
+        sensitive << wr << clk;
+        SC_METHOD(remove);
+        sensitive << wr << rd << clk;
     }
 
 	
