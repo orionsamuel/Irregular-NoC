@@ -28,15 +28,12 @@ SC_MODULE (Buffer){
 
 
 	void add(){
-		if (wr.read() == 1){
-		if (flits.size() == length){
+		if ((wr.read() == 1) && (flits.size() == length) ){
 			wok.write(0); // error, value not added
 		}else {
 			flits.push(din);
 			wok.write(1);
-		}	
-		}
-	
+		}		
 	}
 
 	void remove(){
@@ -55,10 +52,11 @@ SC_MODULE (Buffer){
 	}
 
 	SC_CTOR(Buffer) {
+		length = 50;
         SC_METHOD(add);
         sensitive << wr << clk;
         SC_METHOD(remove);
-        sensitive << wr << rd << clk;
+        sensitive << rd << clk;
     }
 
 	

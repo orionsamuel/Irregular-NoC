@@ -26,6 +26,7 @@ SC_MODULE(router){
 	sc_int<32> aux_rokN, aux_rokE, aux_rokS, aux_rokW, aux_rokL;
 	sc_int<32> aux_rdN, aux_rdE, aux_rdS, aux_rdW,aux_rdL;
 	sc_int<32> portExitN, portExitE, portExitS, portExitW, portExitL;
+	sc_out<sc_int<32> > out_val_N, out_val_E, out_val_S, out_val_W, out_val_L;
 
 	routing_table tabela;
 	
@@ -206,62 +207,87 @@ SC_MODULE(router){
 		//Realização do chaveamento das portas
 		if((portExitN == NORTH) && (aux_rdN == 1)){
 			out_portN = bfN->dout;
+			out_val_N.write(1);
 		}else if((portExitN == EAST) && (aux_rdN == 1)){
 			out_portE = bfN->dout;
+			out_val_E.write(1);
 		}else if((portExitN == SOUTH) && (aux_rdN == 1)){
 			out_portS = bfN->dout;
+			out_val_S.write(1);
 		}else if((portExitN == WEST) && (aux_rdN == 1)){
 			out_portW = bfN->dout;
+			out_val_W.write(1);
 		}else if((portExitN == LOCAL) && (aux_rdN == 1)){
 			out_portL = bfN->dout;
+			out_val_L.write(1);
 		}
 
 		if((portExitE == NORTH) && (aux_rdN == 1)){
 			out_portN = bfE->dout;
+			out_val_N.write(1);
 		}else if((portExitE == EAST) && (aux_rdN == 1)){
 			out_portE = bfE->dout;
+			out_val_E.write(1);
 		}else if((portExitE == SOUTH) && (aux_rdN == 1)){
 			out_portS = bfE->dout;
+			out_val_S.write(1);
 		}else if((portExitE == WEST) && (aux_rdN == 1)){
 			out_portW = bfE->dout;
+			out_val_W.write(1);
 		}else if((portExitE == LOCAL) && (aux_rdN == 1)){
 			out_portL = bfE->dout;
+			out_val_L.write(1);
 		}
 
 		if((portExitS == NORTH) && (aux_rdN == 1)){
 			out_portN = bfS->dout;
+			out_val_N.write(1);
 		}else if((portExitS == EAST) && (aux_rdN == 1)){
 			out_portE = bfS->dout;
+			out_val_E.write(1);
 		}else if((portExitS == SOUTH) && (aux_rdN == 1)){
 			out_portS = bfS->dout;
+			out_val_S.write(1);
 		}else if((portExitS == WEST) && (aux_rdN == 1)){
 			out_portW = bfS->dout;
+			out_val_W.write(1);
 		}else if((portExitS == LOCAL) && (aux_rdN == 1)){
 			out_portL = bfS->dout;
+			out_val_L.write(1);
 		}
 
 		if((portExitW == NORTH) && (aux_rdN == 1)){
 			out_portN = bfW->dout;
+			out_val_N.write(1);
 		}else if((portExitW == EAST) && (aux_rdN == 1)){
 			out_portE = bfW->dout;
+			out_val_E.write(1);
 		}else if((portExitW == SOUTH) && (aux_rdN == 1)){
 			out_portS = bfW->dout;
+			out_val_S.write(1);
 		}else if((portExitW == WEST) && (aux_rdN == 1)){
 			out_portW = bfW->dout;
+			out_val_W.write(1);
 		}else if((portExitW == LOCAL) && (aux_rdN == 1)){
 			out_portL = bfW->dout;
+			out_val_L.write(1);
 		}
 
 		if((portExitL == NORTH) && (aux_rdN == 1)){
 			out_portN = bfL->dout;
+			out_val_N.write(1);
 		}else if((portExitL == EAST) && (aux_rdN == 1)){
 			out_portE = bfL->dout;
+			out_val_E.write(1);
 		}else if((portExitL == SOUTH) && (aux_rdN == 1)){
 			out_portS = bfL->dout;
+			out_val_S.write(1);
 		}else if((portExitL == WEST) && (aux_rdN == 1)){
 			out_portW = bfL->dout;
+			out_val_W.write(1);
 		}else if((portExitL == LOCAL) && (aux_rdN == 1)){
 			out_portL = bfL->dout;
+			out_val_L.write(1);
 		}
 
 		bfN->din = in_portN;

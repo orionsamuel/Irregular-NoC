@@ -23,7 +23,6 @@ SC_MODULE(flow_control){
 	}
 
 	SC_CTOR(flow_control){
-		flow_control flow("flow");
 		SC_METHOD(request);
 		sensitive << in_val << clk;
 		SC_METHOD(response);
