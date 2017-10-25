@@ -17,20 +17,22 @@ SC_MODULE (Buffer){
 	flit din; //Entrada data + bop + eop
 	flit dout; //Saída que vai para o roteamento
 
-	sc_in<bool> clk;
+	sc_in<bool> clk{"clk"};
 
-	sc_in < sc_int<32> > wr; //Entrada que vem do controle de fluxo
-	sc_out< sc_int<32> > wok; //Saída que volta para o buffer
-	sc_in < sc_int<32> > rd; //Entrada que vem do chaveamento
-	sc_out< sc_int<32> > rok; //Saída ?
+	sc_in < sc_int<32> > wr{"wr"}; //Entrada que vem do controle de fluxo
+	sc_out< sc_int<32> > wok{"wok"}; //Saída que volta para o controle de fluxo
+	sc_in < sc_int<32> > rd{"rd"}; //Entrada que vem do chaveamento
+	sc_out< sc_int<32> > rok{"rok"}; //Saída do chaveamento
 	
 	sc_int<32> length;
 
+	sc_int<32> destiny_flit;
+
 
 	void add(){
-		if ((wr.read() == 1) && (flits.size() == length) ){
+		if ((wr.read() == 1) && (flits.size() == length)){
 			wok.write(0); // error, value not added
-		}else {
+		}else if((wr.read() == 1) && (flits.size() < length)){
 			flits.push(din);
 			wok.write(1);
 		}		
@@ -53,10 +55,11 @@ SC_MODULE (Buffer){
 
 	SC_CTOR(Buffer) {
 		length = 50;
+		destiny_flit = dout.destiny;
         SC_METHOD(add);
-        sensitive << wr << clk;
+        sensitive << wr << clk.pos();
         SC_METHOD(remove);
-        sensitive << rd << clk;
+        sensitive << rd << clk.pos();
     }
 
 	

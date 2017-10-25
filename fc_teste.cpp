@@ -14,10 +14,8 @@ int sc_main (int argc, char* argv[]){
 	flow.clk(clock);
 	flow.in_val(in_val);
 	flow.wok(wok);
-	flow.in_ack(in_ack);
+	flow.out_ack(in_ack);
 	flow.wr(wr);
-	//flow = new flow_control("flow");
-	sc_start(10, SC_NS);
-
+	sc_start(30, SC_NS);
 	return 0;
 }
