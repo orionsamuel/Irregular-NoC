@@ -54,21 +54,567 @@ SC_MODULE(router){
 	
 	//Sinais para o chaveamento dos buffers
 	sc_signal<sc_int<32> > rd[5];
-	sc_signal<sc_int<32> > rok[5];
 
-	void execute(){
-		if (fcN->in_val.read() == 1)
-		{
-		cout << "norte" << endl;
-		fcN->wr.write(1);
-		sc_start();
-		if (bfN->wr.read() == 1)
-			bfN->wok.write(buffer_leste->isEmpty());
-		sc_start();
-		if (cf_leste->in_cf_buffer.read() == 1)
-			cf_leste->in_ack.write(1);	
-		} 
 
+	sc_signal<sc_int<32> > portDestiny[5];
+
+	
+
+	void map_fc(){
+		if(in_val[0].read() == 1){
+			fcN->in_val.write(1);
+		}
+		if(in_val[1].read() == 1){
+			fcE->in_val.write(1);
+		}
+		if(in_val[2].read() == 1){
+			fcS->in_val.write(1);
+		}
+		if(in_val[3].read() == 1){
+			fcW->in_val.write(1);
+		}
+		if(in_val[4].read() == 1){
+			fcL->in_val.write(1);
+		}
+
+
+		if(fcN->out_ack.read() == 1){
+			out_ack[0].write(1);
+		}
+		if(fcE->out_ack.read() == 1){
+			out_ack[1].write(1);
+		}
+		if(fcS->out_ack.read() == 1){
+			out_ack[2].write(1);
+		}
+		if(fcW->out_ack.read() == 1){
+			out_ack[3].write(1);
+		}
+		if(fcL->out_ack.read() == 1){
+			out_ack[4].write(1);
+		}
+
+
+		if(fcN->in_val.read() == 1){
+			bfN->wr.write(1);
+		}
+		if(fcE->in_val.read() == 1){
+			bfE->wr.write(1);
+		}
+		if(fcS->in_val.read() == 1){
+			bfS->wr.write(1);
+		}
+		if(fcW->in_val.read() == 1){
+			bfW->wr.write(1);
+		}
+		if(fcL->in_val.read() == 1){
+			bfL->wr.write(1);
+		}		
+
+
+		if(bfN->wok.read() == 1){
+			fcN->out_ack.write(1);
+		}
+		if(bfE->wok.read() == 1){
+			fcE->out_ack.write(1);
+		}
+		if(bfS->wok.read() == 1){
+			fcS->out_ack.write(1);
+		}
+		if(bfW->wok.read() == 1){
+			fcW->out_ack.write(1);
+		}
+		if(bfL->wok.read() == 1){
+			fcL->out_ack.write(1);
+		}
+		
+	}
+
+	void map_bf(){
+
+		bfN->din = in_portN;
+		bfE->din = in_portE;
+		bfS->din = in_portS;
+		bfW->din = in_portW;
+		bfL->din = in_portL;
+
+	}
+
+	void map_rtg(){
+		rtgN->tabela =  tabela;
+		rtgE->tabela =  tabela;
+		rtgS->tabela =  tabela;
+		rtgW->tabela =  tabela;
+		rtgL->tabela =  tabela;
+
+		if(bfN->din.destiny == NORTH){
+			rtgN->destiny.write(NORTH);
+		}
+		if(bfN->din.destiny == EAST){
+			rtgN->destiny.write(EAST);
+		}
+		if(bfN->din.destiny == SOUTH){
+			rtgN->destiny.write(SOUTH);
+		}
+		if(bfN->din.destiny == WEST){
+			rtgN->destiny.write(WEST);
+		}
+		if(bfN->din.destiny == LOCAL){
+			rtgN->destiny.write(LOCAL);
+		}
+
+
+		if(bfE->din.destiny == NORTH){
+			rtgE->destiny.write(NORTH);
+		}
+		if(bfE->din.destiny == EAST){
+			rtgE->destiny.write(EAST);
+		}
+		if(bfE->din.destiny == SOUTH){
+			rtgE->destiny.write(SOUTH);
+		}
+		if(bfE->din.destiny == WEST){
+			rtgE->destiny.write(WEST);
+		}
+		if(bfE->din.destiny == LOCAL){
+			rtgE->destiny.write(LOCAL);
+		}
+
+
+		if(bfS->din.destiny == NORTH){
+			rtgS->destiny.write(NORTH);
+		}
+		if(bfS->din.destiny == EAST){
+			rtgS->destiny.write(EAST);
+		}
+		if(bfS->din.destiny == SOUTH){
+			rtgS->destiny.write(SOUTH);
+		}
+		if(bfS->din.destiny == WEST){
+			rtgS->destiny.write(WEST);
+		}
+		if(bfS->din.destiny == LOCAL){
+			rtgS->destiny.write(LOCAL);
+		}
+
+
+		if(bfW->din.destiny == NORTH){
+			rtgW->destiny.write(NORTH);
+		}
+		if(bfW->din.destiny == EAST){
+			rtgW->destiny.write(EAST);
+		}
+		if(bfW->din.destiny == SOUTH){
+			rtgW->destiny.write(SOUTH);
+		}
+		if(bfW->din.destiny == WEST){
+			rtgW->destiny.write(WEST);
+		}
+		if(bfW->din.destiny == LOCAL){
+			rtgW->destiny.write(LOCAL);
+		}
+
+
+		if(bfL->din.destiny == NORTH){
+			rtgL->destiny.write(NORTH);
+		}
+		if(bfL->din.destiny == EAST){
+			rtgL->destiny.write(EAST);
+		}
+		if(bfL->din.destiny == SOUTH){
+			rtgL->destiny.write(SOUTH);
+		}
+		if(bfL->din.destiny == WEST){
+			rtgL->destiny.write(WEST);
+		}
+		if(bfL->din.destiny == LOCAL){
+			rtgL->destiny.write(LOCAL);
+		}
+
+
+		if(rtgN->portDestiny.read() == NORTH){
+			portDestiny[0].write(NORTH);
+		}
+		if(rtgN->portDestiny.read() == EAST){
+			portDestiny[0].write(EAST);
+		}
+		if(rtgN->portDestiny.read() == SOUTH){
+			portDestiny[0].write(SOUTH);
+		}
+		if(rtgN->portDestiny.read() == WEST){
+			portDestiny[0].write(WEST);
+		}
+		if(rtgN->portDestiny.read() == LOCAL){
+			portDestiny[0].write(LOCAL);
+		}
+
+
+
+		if(rtgE->portDestiny.read() == NORTH){
+			portDestiny[1].write(NORTH);
+		}
+		if(rtgE->portDestiny.read() == EAST){
+			portDestiny[1].write(EAST);
+		}
+		if(rtgE->portDestiny.read() == SOUTH){
+			portDestiny[1].write(SOUTH);
+		}
+		if(rtgE->portDestiny.read() == WEST){
+			portDestiny[1].write(WEST);
+		}
+		if(rtgE->portDestiny.read() == LOCAL){
+			portDestiny[1].write(LOCAL);
+		}
+
+
+
+		if(rtgS->portDestiny.read() == NORTH){
+			portDestiny[2].write(NORTH);
+		}
+		if(rtgS->portDestiny.read() == EAST){
+			portDestiny[2].write(EAST);
+		}
+		if(rtgS->portDestiny.read() == SOUTH){
+			portDestiny[2].write(SOUTH);
+		}
+		if(rtgS->portDestiny.read() == WEST){
+			portDestiny[2].write(WEST);
+		}
+		if(rtgS->portDestiny.read() == LOCAL){
+			portDestiny[2].write(LOCAL);
+		}
+
+
+
+		if(rtgW->portDestiny.read() == NORTH){
+			portDestiny[3].write(NORTH);
+		}
+		if(rtgW->portDestiny.read() == EAST){
+			portDestiny[3].write(EAST);
+		}
+		if(rtgW->portDestiny.read() == SOUTH){
+			portDestiny[3].write(SOUTH);
+		}
+		if(rtgW->portDestiny.read() == WEST){
+			portDestiny[3].write(WEST);
+		}
+		if(rtgW->portDestiny.read() == LOCAL){
+			portDestiny[3].write(LOCAL);
+		}
+
+
+
+		if(rtgL->portDestiny.read() == NORTH){
+			portDestiny[4].write(NORTH);
+		}
+		if(rtgL->portDestiny.read() == EAST){
+			portDestiny[4].write(EAST);
+		}
+		if(rtgL->portDestiny.read() == SOUTH){
+			portDestiny[4].write(SOUTH);
+		}
+		if(rtgL->portDestiny.read() == WEST){
+			portDestiny[4].write(WEST);
+		}
+		if(rtgL->portDestiny.read() == LOCAL){
+			portDestiny[4].write(LOCAL);
+		}
+
+	}
+
+	void map_arb(){
+
+		if(arbN->rd[0].read() == 1){
+			bfN->rd.write(1);
+		}
+		if(arbN->rd[1].read() == 1){
+			bfE->rd.write(1);;
+		}
+		if(arbN->rd[2].read() == 1){
+			bfS->rd.write(1);
+		}
+		if(arbN->rd[3].read() == 1){
+			bfW->rd.write(1);
+		}
+		if(arbN->rd[4].read() == 1){
+			bfL->rd.write(1);
+		}
+
+
+		if(arbE->rd[0].read() == 1){
+			bfN->rd.write(1);
+		}
+		if(arbE->rd[1].read() == 1){
+			bfE->rd.write(1);;
+		}
+		if(arbE->rd[2].read() == 1){
+			bfS->rd.write(1);
+		}
+		if(arbE->rd[3].read() == 1){
+			bfW->rd.write(1);
+		}
+		if(arbE->rd[4].read() == 1){
+			bfL->rd.write(1);
+		}
+
+
+		if(arbS->rd[0].read() == 1){
+			bfN->rd.write(1);
+		}
+		if(arbS->rd[1].read() == 1){
+			bfE->rd.write(1);;
+		}
+		if(arbS->rd[2].read() == 1){
+			bfS->rd.write(1);
+		}
+		if(arbS->rd[3].read() == 1){
+			bfW->rd.write(1);
+		}
+		if(arbS->rd[4].read() == 1){
+			bfL->rd.write(1);
+		}
+
+
+		if(arbW->rd[0].read() == 1){
+			bfN->rd.write(1);
+		}
+		if(arbW->rd[1].read() == 1){
+			bfE->rd.write(1);;
+		}
+		if(arbW->rd[2].read() == 1){
+			bfS->rd.write(1);
+		}
+		if(arbW->rd[3].read() == 1){
+			bfW->rd.write(1);
+		}
+		if(arbW->rd[4].read() == 1){
+			bfL->rd.write(1);
+		}
+
+
+		if(arbL->rd[0].read() == 1){
+			bfN->rd.write(1);
+		}
+		if(arbL->rd[1].read() == 1){
+			bfE->rd.write(1);;
+		}
+		if(arbL->rd[2].read() == 1){
+			bfS->rd.write(1);
+		}
+		if(arbL->rd[3].read() == 1){
+			bfW->rd.write(1);
+		}
+		if(arbL->rd[4].read() == 1){
+			bfL->rd.write(1);
+		}
+	}
+
+	void request_arbiter(){
+		if(portDestiny[0].read() == NORTH){
+			arbN->bufferCircular[NORTH] = 1;
+		}else if(portDestiny[0].read() == EAST){
+			arbE->bufferCircular[NORTH] = 1;
+		}else if(portDestiny[0].read() == SOUTH){
+			arbS->bufferCircular[NORTH] = 1;
+		}else if(portDestiny[0].read() == WEST){
+			arbW->bufferCircular[NORTH] = 1;
+		}else if(portDestiny[0].read() == LOCAL){
+			arbL->bufferCircular[NORTH] = 1;
+		}
+
+
+		if(portDestiny[1].read() == NORTH){
+			arbN->bufferCircular[EAST] = 1;
+		}else if(portDestiny[1].read() == EAST){
+			arbE->bufferCircular[EAST] = 1;
+		}else if(portDestiny[1].read() == SOUTH){
+			arbS->bufferCircular[EAST] = 1;
+		}else if(portDestiny[1].read() == WEST){
+			arbW->bufferCircular[EAST] = 1;
+		}else if(portDestiny[1].read() == LOCAL){
+			arbL->bufferCircular[EAST] = 1;
+		}
+
+
+		if(portDestiny[2].read() == NORTH){
+			arbN->bufferCircular[SOUTH] = 1;
+		}else if(portDestiny[2].read() == EAST){
+			arbE->bufferCircular[SOUTH] = 1;
+		}else if(portDestiny[2].read() == SOUTH){
+			arbS->bufferCircular[SOUTH] = 1;
+		}else if(portDestiny[2].read() == WEST){
+			arbW->bufferCircular[SOUTH] = 1;
+		}else if(portDestiny[2].read() == LOCAL){
+			arbL->bufferCircular[SOUTH] = 1;
+		}
+
+
+		if(portDestiny[3].read() == NORTH){
+			arbN->bufferCircular[WEST] = 1;
+		}else if(portDestiny[3].read() == EAST){
+			arbE->bufferCircular[WEST] = 1;
+		}else if(portDestiny[3].read() == SOUTH){
+			arbS->bufferCircular[WEST] = 1;
+		}else if(portDestiny[3].read() == WEST){
+			arbW->bufferCircular[WEST] = 1;
+		}else if(portDestiny[3].read() == LOCAL){
+			arbL->bufferCircular[WEST] = 1;
+		}
+
+
+		if(portDestiny[4].read() == NORTH){
+			arbN->bufferCircular[LOCAL] = 1;
+		}else if(portDestiny[4].read() == EAST){
+			arbE->bufferCircular[LOCAL] = 1;
+		}else if(portDestiny[4].read() == SOUTH){
+			arbS->bufferCircular[LOCAL] = 1;
+		}else if(portDestiny[4].read() == WEST){
+			arbW->bufferCircular[LOCAL] = 1;
+		}else if(portDestiny[4].read() == LOCAL){
+			arbL->bufferCircular[LOCAL] = 1;
+		}
+	}
+
+
+	void chaveamento_interno(){
+		if((portDestiny[0].read() == NORTH) && (arbN->priority == NORTH)){
+			out_portN = bfN->dout;
+			out_val[0].write(1);
+			//arbN->bufferCircular[NORTH] = 0;
+		}
+		if((portDestiny[0].read() == EAST) && (arbE->priority == NORTH)){
+			out_portE = bfN->dout;
+			out_val[1].write(1);
+			//arbE->bufferCircular[EAST] = 0;
+		}
+		if((portDestiny[0].read() == SOUTH) && (arbS->priority == NORTH)){
+			out_portS = bfN->dout;
+			out_val[2].write(1);
+			//arbS->bufferCircular[SOUTH] = 0;
+		}
+		if((portDestiny[0].read() == WEST) && (arbW->priority == NORTH)){
+			out_portW = bfN->dout;
+			out_val[3].write(1);
+			//arbW->bufferCircular[WEST] = 0;
+		}
+		if((portDestiny[0].read() == LOCAL) && (arbL->priority == NORTH)){
+			out_portL = bfN->dout;
+			out_val[4].write(1);
+			//arbL->bufferCircular[LOCAL] = 0;
+		}
+
+
+		if((portDestiny[1].read() == NORTH) && (arbN->priority == EAST)){
+			out_portN = bfE->dout;
+			out_val[0].write(1);
+			//arbN->bufferCircular[NORTH] = 0;
+		}
+		if((portDestiny[1].read() == EAST) && (arbE->priority == EAST)){
+			out_portE = bfE->dout;
+			out_val[1].write(1);
+			//arbE->bufferCircular[EAST] = 0;
+		}
+		if((portDestiny[1].read() == SOUTH) && (arbS->priority == EAST)){
+			out_portS = bfE->dout;
+			out_val[2].write(1);
+			//arbS->bufferCircular[SOUTH] = 0;
+		}
+		if((portDestiny[1].read() == WEST) && (arbW->priority == EAST)){
+			out_portW = bfE->dout;
+			out_val[3].write(1);
+			//arbW->bufferCircular[WEST] = 0;
+		}
+		if((portDestiny[1].read() == LOCAL) && (arbL->priority == EAST)){
+			out_portL = bfE->dout;
+			out_val[4].write(1);
+			//arbL->bufferCircular[LOCAL] = 0;
+		}
+
+
+		if((portDestiny[2].read() == NORTH) && (arbN->priority == SOUTH)){
+			out_portN = bfS->dout;
+			out_val[0].write(1);
+			//arbN->bufferCircular[NORTH] = 0;
+		}
+		if((portDestiny[2].read() == EAST) && (arbE->priority == SOUTH)){
+			out_portE = bfS->dout;
+			out_val[1].write(1);
+			//arbE->bufferCircular[EAST] = 0;
+		}
+		if((portDestiny[2].read() == SOUTH) && (arbS->priority == SOUTH)){
+			out_portS = bfS->dout;
+			out_val[2].write(1);
+			//arbS->bufferCircular[SOUTH] = 0;
+		}
+		if((portDestiny[2].read() == WEST) && (arbW->priority == SOUTH)){
+			out_portW = bfS->dout;
+			out_val[3].write(1);
+			//arbW->bufferCircular[WEST] = 0;
+		}
+		if((portDestiny[2].read() == LOCAL) && (arbL->priority == SOUTH)){
+			out_portL = bfS->dout;
+			out_val[4].write(1);
+			//arbL->bufferCircular[LOCAL] = 0;
+		}
+
+
+		if((portDestiny[3].read() == NORTH) && (arbN->priority == WEST)){
+			out_portN = bfW->dout;
+			out_val[0].write(1);
+			//arbN->bufferCircular[NORTH] = 0;
+		}
+		if((portDestiny[3].read() == EAST) && (arbE->priority == WEST)){
+			out_portE = bfW->dout;
+			out_val[1].write(1);
+			//arbE->bufferCircular[EAST] = 0;
+		}
+		if((portDestiny[3].read() == SOUTH) && (arbS->priority == WEST)){
+			out_portS = bfW->dout;
+			out_val[2].write(1);
+			//arbS->bufferCircular[SOUTH] = 0;
+		}
+		if((portDestiny[3].read() == WEST) && (arbW->priority == WEST)){
+			out_portW = bfW->dout;
+			out_val[3].write(1);
+			//arbW->bufferCircular[WEST] = 0;
+		}
+		if((portDestiny[3].read() == LOCAL) && (arbL->priority == WEST)){
+			out_portL = bfW->dout;
+			out_val[4].write(1);
+			//arbL->bufferCircular[LOCAL] = 0;
+		}
+
+
+		if((portDestiny[4].read() == NORTH) && (arbN->priority == LOCAL)){
+			out_portN = bfL->dout;
+			out_val[0].write(1);
+			//arbN->bufferCircular[NORTH] = 0;
+		}
+		if((portDestiny[4].read() == EAST) && (arbE->priority == LOCAL)){
+			out_portE = bfL->dout;
+			out_val[1].write(1);
+			//arbE->bufferCircular[EAST] = 0;
+		}
+		if((portDestiny[4].read() == SOUTH) && (arbS->priority == LOCAL)){
+			out_portS = bfL->dout;
+			out_val[2].write(1);
+			//arbS->bufferCircular[SOUTH] = 0;
+		}
+		if((portDestiny[4].read() == WEST) && (arbW->priority == LOCAL)){
+			out_portW = bfL->dout;
+			out_val[3].write(1);
+			//arbW->bufferCircular[WEST] = 0;
+		}
+		if((portDestiny[4].read() == LOCAL) && (arbL->priority == LOCAL)){
+			out_portL = bfL->dout;
+			out_val[4].write(1);
+			//arbL->bufferCircular[LOCAL] = 0;
+		}
+	}
+
+	void print(){
+		//cout << portDestiny[4] << endl;
+		cout << out_portE.payload << endl;
 	}
 
 
@@ -102,8 +648,51 @@ SC_MODULE(router){
 		arbL = new arbiter("arbL");
 
 
+		//Controle de fluxo
+		fcN->clk(clk);
+		fcE->clk(clk);
+		fcS->clk(clk);
+		fcW->clk(clk);
+		fcL->clk(clk);
 
-		SC_METHOD(execute);
+
+		//Buffers
+		bfN->clk(clk);
+		bfE->clk(clk);
+		bfS->clk(clk);
+		bfW->clk(clk);
+		bfL->clk(clk);
+
+		
+		//Roteamento
+		rtgN->clk(clk);
+		rtgE->clk(clk);
+		rtgS->clk(clk);
+		rtgW->clk(clk);
+		rtgL->clk(clk);
+
+
+		//Arbitragem
+		arbN->clk(clk);
+		arbE->clk(clk);
+		arbS->clk(clk);
+		arbW->clk(clk);
+		arbL->clk(clk);
+
+
+		SC_METHOD(print);
+		sensitive << clk.pos();
+		SC_METHOD(map_fc);
+		sensitive << clk.pos();
+		SC_METHOD(map_bf);
+		sensitive << clk.pos();
+		SC_METHOD(map_rtg);
+		sensitive << clk.pos();
+		SC_METHOD(map_arb);
+		sensitive << clk.pos();
+		SC_METHOD(chaveamento_interno);
+		sensitive << clk.pos();
+		SC_METHOD(request_arbiter);
 		sensitive << clk.pos();
 
 	}

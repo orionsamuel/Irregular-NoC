@@ -9,8 +9,7 @@ using namespace std;
 int sc_main (int argc, char* argv[]){
 
 	sc_clock clock("Clock", 10, SC_NS, 0.5);
-	sc_signal<sc_int<32> > destiny, portDestiny;
-	destiny = 8;
+	sc_signal<sc_int<32> > portDestiny;
 	routing_table table0;
 
 	table0.push_back({8, WEST, 5});
@@ -20,14 +19,13 @@ int sc_main (int argc, char* argv[]){
 
 	routing rtg("routing");
 	rtg.clk(clock);
-	rtg.destiny(destiny);
-	rtg.portDestiny(portDestiny);
+	rtg.destiny.write(8);
 	rtg.tabela = table0;
 
-	sc_start(10, SC_NS);
+	sc_start(50, SC_NS);
 
 	cout << rtg.tabela.size() << endl;
 	cout << rtg.counter << endl;
-	cout << portDestiny << endl;
+	cout << rtg.portDestiny.read() << endl;
 
 }

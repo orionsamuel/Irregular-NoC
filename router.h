@@ -9,6 +9,7 @@
 
 using namespace std;
 
+
 SC_MODULE(router){
 	//Posição em que o roteador se encontra
 	sc_int<32> position;
@@ -37,409 +38,585 @@ SC_MODULE(router){
 	routing *rtgN, *rtgE, *rtgS, *rtgW, *rtgL;
 	arbiter *arbN, *arbE, *arbS, *arbW, *arbL;
 
+
 	//Portas de comunicação entre roteadores
-	sc_in<sc_int<32> > in_val_N{"in_val_N"};
-	sc_in<sc_int<32> > in_val_E{"in_val_E"};
-	sc_in<sc_int<32> > in_val_S{"in_val_S"};
-	sc_in<sc_int<32> > in_val_W{"in_val_W"};
-	sc_in<sc_int<32> > in_val_L{"in_val_L"};
+	sc_signal<sc_int<32> > in_val[5];
 
-	sc_out<sc_int<32> > out_val_N{"out_val_N"};
-	sc_out<sc_int<32> > out_val_E{"out_val_E"};
-	sc_out<sc_int<32> > out_val_S{"out_val_S"};
-	sc_out<sc_int<32> > out_val_W{"out_val_W"};
-	sc_out<sc_int<32> > out_val_L{"out_val_L"};
+	sc_signal<sc_int<32> > out_val[5];
 
-	sc_in<sc_int<32> > in_ack_N{"in_ack_N"};
-	sc_in<sc_int<32> > in_ack_E{"in_ack_E"};
-	sc_in<sc_int<32> > in_ack_S{"in_ack_S"};
-	sc_in<sc_int<32> > in_ack_W{"in_ack_W"};
-	sc_in<sc_int<32> > in_ack_L{"in_ack_L"};
+	sc_signal<sc_int<32> > in_ack[5];
 
-	sc_out<sc_int<32> > out_ack_N{"out_ack_N"};
-	sc_out<sc_int<32> > out_ack_E{"out_ack_E"};
-	sc_out<sc_int<32> > out_ack_S{"out_ack_S"};
-	sc_out<sc_int<32> > out_ack_W{"out_ack_W"};
-	sc_out<sc_int<32> > out_ack_L{"out_ack_L"};
+	sc_signal<sc_int<32> > out_ack[5];
+
+	//Sinais para verificação nos buffers
+	sc_signal<sc_int<32> > wok[5];
+	sc_signal<sc_int<32> > wr[5];
 	
-	//Sinais de comunicação com os buffers
-	sc_signal<sc_int<32> > wok_N;
-	sc_signal<sc_int<32> > wok_E;
-	sc_signal<sc_int<32> > wok_S;
-	sc_signal<sc_int<32> > wok_W;
-	sc_signal<sc_int<32> > wok_L;
+	//Sinais para o chaveamento dos buffers
+	sc_signal<sc_int<32> > rd[5];
 
-	sc_signal<sc_int<32> > wr_N;
-	sc_signal<sc_int<32> > wr_E;
-	sc_signal<sc_int<32> > wr_S;
-	sc_signal<sc_int<32> > wr_W;
-	sc_signal<sc_int<32> > wr_L;
 
-	//Sinais para controle de chaveamento
-	sc_signal<sc_int<32>, SC_MANY_WRITERS> rd_N;
-	sc_signal<sc_int<32>, SC_MANY_WRITERS> rd_E;
-	sc_signal<sc_int<32>, SC_MANY_WRITERS> rd_S;
-	sc_signal<sc_int<32>, SC_MANY_WRITERS> rd_W;
-	sc_signal<sc_int<32>, SC_MANY_WRITERS> rd_L;
+	sc_signal<sc_int<32> > portDestiny[5];
 
-	sc_signal<sc_int<32> > rok_N;
-	sc_signal<sc_int<32> > rok_E;
-	sc_signal<sc_int<32> > rok_S;
-	sc_signal<sc_int<32> > rok_W;
-	sc_signal<sc_int<32> > rok_L;
-
-	//Sinais de destino do pacote e saída do roteamento
-	sc_signal<sc_int<32> > destiny_N;
-	sc_signal<sc_int<32> > destiny_E;
-	sc_signal<sc_int<32> > destiny_S;
-	sc_signal<sc_int<32> > destiny_W;
-	sc_signal<sc_int<32> > destiny_L;
-
-	sc_signal<sc_int<32> > portDestiny_N;
-	sc_signal<sc_int<32> > portDestiny_E;
-	sc_signal<sc_int<32> > portDestiny_S;
-	sc_signal<sc_int<32> > portDestiny_W;
-	sc_signal<sc_int<32> > portDestiny_L;
 	
 
-	sc_int<32> portExitN, portExitE, portExitS, portExitW, portExitL;
-	sc_int<32> rokN, rokE, rokS, rokW, rokL;
+	void map_fc(){
+		if(in_val[0].read() == 1){
+			fcN->in_val.write(1);
+		}
+		if(in_val[1].read() == 1){
+			fcE->in_val.write(1);
+		}
+		if(in_val[2].read() == 1){
+			fcS->in_val.write(1);
+		}
+		if(in_val[3].read() == 1){
+			fcW->in_val.write(1);
+		}
+		if(in_val[4].read() == 1){
+			fcL->in_val.write(1);
+		}
+
+
+		if(fcN->out_ack.read() == 1){
+			out_ack[0].write(1);
+		}
+		if(fcE->out_ack.read() == 1){
+			out_ack[1].write(1);
+		}
+		if(fcS->out_ack.read() == 1){
+			out_ack[2].write(1);
+		}
+		if(fcW->out_ack.read() == 1){
+			out_ack[3].write(1);
+		}
+		if(fcL->out_ack.read() == 1){
+			out_ack[4].write(1);
+		}
+
+
+		if(fcN->in_val.read() == 1){
+			bfN->wr.write(1);
+		}
+		if(fcE->in_val.read() == 1){
+			bfE->wr.write(1);
+		}
+		if(fcS->in_val.read() == 1){
+			bfS->wr.write(1);
+		}
+		if(fcW->in_val.read() == 1){
+			bfW->wr.write(1);
+		}
+		if(fcL->in_val.read() == 1){
+			bfL->wr.write(1);
+		}		
+
+
+		if(bfN->wok.read() == 1){
+			fcN->out_ack.write(1);
+		}
+		if(bfE->wok.read() == 1){
+			fcE->out_ack.write(1);
+		}
+		if(bfS->wok.read() == 1){
+			fcS->out_ack.write(1);
+		}
+		if(bfW->wok.read() == 1){
+			fcW->out_ack.write(1);
+		}
+		if(bfL->wok.read() == 1){
+			fcL->out_ack.write(1);
+		}
+		
+	}
+
+	void map_bf(){
+
+		bfN->din = in_portN;
+		bfE->din = in_portE;
+		bfS->din = in_portS;
+		bfW->din = in_portW;
+		bfL->din = in_portL;
+
+	}
+
+	void map_rtg(){
+		rtgN->tabela =  tabela;
+		rtgE->tabela =  tabela;
+		rtgS->tabela =  tabela;
+		rtgW->tabela =  tabela;
+		rtgL->tabela =  tabela;
+
+		if(bfN->din.destiny == NORTH){
+			rtgN->destiny.write(NORTH);
+		}
+		if(bfN->din.destiny == EAST){
+			rtgN->destiny.write(EAST);
+		}
+		if(bfN->din.destiny == SOUTH){
+			rtgN->destiny.write(SOUTH);
+		}
+		if(bfN->din.destiny == WEST){
+			rtgN->destiny.write(WEST);
+		}
+		if(bfN->din.destiny == LOCAL){
+			rtgN->destiny.write(LOCAL);
+		}
+
+
+		if(bfE->din.destiny == NORTH){
+			rtgE->destiny.write(NORTH);
+		}
+		if(bfE->din.destiny == EAST){
+			rtgE->destiny.write(EAST);
+		}
+		if(bfE->din.destiny == SOUTH){
+			rtgE->destiny.write(SOUTH);
+		}
+		if(bfE->din.destiny == WEST){
+			rtgE->destiny.write(WEST);
+		}
+		if(bfE->din.destiny == LOCAL){
+			rtgE->destiny.write(LOCAL);
+		}
+
+
+		if(bfS->din.destiny == NORTH){
+			rtgS->destiny.write(NORTH);
+		}
+		if(bfS->din.destiny == EAST){
+			rtgS->destiny.write(EAST);
+		}
+		if(bfS->din.destiny == SOUTH){
+			rtgS->destiny.write(SOUTH);
+		}
+		if(bfS->din.destiny == WEST){
+			rtgS->destiny.write(WEST);
+		}
+		if(bfS->din.destiny == LOCAL){
+			rtgS->destiny.write(LOCAL);
+		}
+
+
+		if(bfW->din.destiny == NORTH){
+			rtgW->destiny.write(NORTH);
+		}
+		if(bfW->din.destiny == EAST){
+			rtgW->destiny.write(EAST);
+		}
+		if(bfW->din.destiny == SOUTH){
+			rtgW->destiny.write(SOUTH);
+		}
+		if(bfW->din.destiny == WEST){
+			rtgW->destiny.write(WEST);
+		}
+		if(bfW->din.destiny == LOCAL){
+			rtgW->destiny.write(LOCAL);
+		}
+
+
+		if(bfL->din.destiny == NORTH){
+			rtgL->destiny.write(NORTH);
+		}
+		if(bfL->din.destiny == EAST){
+			rtgL->destiny.write(EAST);
+		}
+		if(bfL->din.destiny == SOUTH){
+			rtgL->destiny.write(SOUTH);
+		}
+		if(bfL->din.destiny == WEST){
+			rtgL->destiny.write(WEST);
+		}
+		if(bfL->din.destiny == LOCAL){
+			rtgL->destiny.write(LOCAL);
+		}
+
+
+		if(rtgN->portDestiny.read() == NORTH){
+			portDestiny[0].write(NORTH);
+		}
+		if(rtgN->portDestiny.read() == EAST){
+			portDestiny[0].write(EAST);
+		}
+		if(rtgN->portDestiny.read() == SOUTH){
+			portDestiny[0].write(SOUTH);
+		}
+		if(rtgN->portDestiny.read() == WEST){
+			portDestiny[0].write(WEST);
+		}
+		if(rtgN->portDestiny.read() == LOCAL){
+			portDestiny[0].write(LOCAL);
+		}
+
+
+
+		if(rtgE->portDestiny.read() == NORTH){
+			portDestiny[1].write(NORTH);
+		}
+		if(rtgE->portDestiny.read() == EAST){
+			portDestiny[1].write(EAST);
+		}
+		if(rtgE->portDestiny.read() == SOUTH){
+			portDestiny[1].write(SOUTH);
+		}
+		if(rtgE->portDestiny.read() == WEST){
+			portDestiny[1].write(WEST);
+		}
+		if(rtgE->portDestiny.read() == LOCAL){
+			portDestiny[1].write(LOCAL);
+		}
+
+
+
+		if(rtgS->portDestiny.read() == NORTH){
+			portDestiny[2].write(NORTH);
+		}
+		if(rtgS->portDestiny.read() == EAST){
+			portDestiny[2].write(EAST);
+		}
+		if(rtgS->portDestiny.read() == SOUTH){
+			portDestiny[2].write(SOUTH);
+		}
+		if(rtgS->portDestiny.read() == WEST){
+			portDestiny[2].write(WEST);
+		}
+		if(rtgS->portDestiny.read() == LOCAL){
+			portDestiny[2].write(LOCAL);
+		}
+
+
+
+		if(rtgW->portDestiny.read() == NORTH){
+			portDestiny[3].write(NORTH);
+		}
+		if(rtgW->portDestiny.read() == EAST){
+			portDestiny[3].write(EAST);
+		}
+		if(rtgW->portDestiny.read() == SOUTH){
+			portDestiny[3].write(SOUTH);
+		}
+		if(rtgW->portDestiny.read() == WEST){
+			portDestiny[3].write(WEST);
+		}
+		if(rtgW->portDestiny.read() == LOCAL){
+			portDestiny[3].write(LOCAL);
+		}
+
+
+
+		if(rtgL->portDestiny.read() == NORTH){
+			portDestiny[4].write(NORTH);
+		}
+		if(rtgL->portDestiny.read() == EAST){
+			portDestiny[4].write(EAST);
+		}
+		if(rtgL->portDestiny.read() == SOUTH){
+			portDestiny[4].write(SOUTH);
+		}
+		if(rtgL->portDestiny.read() == WEST){
+			portDestiny[4].write(WEST);
+		}
+		if(rtgL->portDestiny.read() == LOCAL){
+			portDestiny[4].write(LOCAL);
+		}
+
+	}
+
+	void map_arb(){
+
+		if(arbN->rd[0].read() == 1){
+			bfN->rd.write(1);
+		}
+		if(arbN->rd[1].read() == 1){
+			bfE->rd.write(1);;
+		}
+		if(arbN->rd[2].read() == 1){
+			bfS->rd.write(1);
+		}
+		if(arbN->rd[3].read() == 1){
+			bfW->rd.write(1);
+		}
+		if(arbN->rd[4].read() == 1){
+			bfL->rd.write(1);
+		}
+
+
+		if(arbE->rd[0].read() == 1){
+			bfN->rd.write(1);
+		}
+		if(arbE->rd[1].read() == 1){
+			bfE->rd.write(1);;
+		}
+		if(arbE->rd[2].read() == 1){
+			bfS->rd.write(1);
+		}
+		if(arbE->rd[3].read() == 1){
+			bfW->rd.write(1);
+		}
+		if(arbE->rd[4].read() == 1){
+			bfL->rd.write(1);
+		}
+
+
+		if(arbS->rd[0].read() == 1){
+			bfN->rd.write(1);
+		}
+		if(arbS->rd[1].read() == 1){
+			bfE->rd.write(1);;
+		}
+		if(arbS->rd[2].read() == 1){
+			bfS->rd.write(1);
+		}
+		if(arbS->rd[3].read() == 1){
+			bfW->rd.write(1);
+		}
+		if(arbS->rd[4].read() == 1){
+			bfL->rd.write(1);
+		}
+
+
+		if(arbW->rd[0].read() == 1){
+			bfN->rd.write(1);
+		}
+		if(arbW->rd[1].read() == 1){
+			bfE->rd.write(1);;
+		}
+		if(arbW->rd[2].read() == 1){
+			bfS->rd.write(1);
+		}
+		if(arbW->rd[3].read() == 1){
+			bfW->rd.write(1);
+		}
+		if(arbW->rd[4].read() == 1){
+			bfL->rd.write(1);
+		}
+
+
+		if(arbL->rd[0].read() == 1){
+			bfN->rd.write(1);
+		}
+		if(arbL->rd[1].read() == 1){
+			bfE->rd.write(1);;
+		}
+		if(arbL->rd[2].read() == 1){
+			bfS->rd.write(1);
+		}
+		if(arbL->rd[3].read() == 1){
+			bfW->rd.write(1);
+		}
+		if(arbL->rd[4].read() == 1){
+			bfL->rd.write(1);
+		}
+	}
 
 	void request_arbiter(){
-		if(portExitN == NORTH){
+		if(portDestiny[0].read() == NORTH){
 			arbN->bufferCircular[NORTH] = 1;
-		}else if(portExitN == EAST){
+		}else if(portDestiny[0].read() == EAST){
 			arbE->bufferCircular[NORTH] = 1;
-		}else if(portExitN == SOUTH){
+		}else if(portDestiny[0].read() == SOUTH){
 			arbS->bufferCircular[NORTH] = 1;
-		}else if(portExitN == WEST){
+		}else if(portDestiny[0].read() == WEST){
 			arbW->bufferCircular[NORTH] = 1;
-		}else if(portExitN == LOCAL){
+		}else if(portDestiny[0].read() == LOCAL){
 			arbL->bufferCircular[NORTH] = 1;
 		}
 
-		if(portExitE == NORTH){
+
+		if(portDestiny[1].read() == NORTH){
 			arbN->bufferCircular[EAST] = 1;
-		}else if(portExitE == EAST){
+		}else if(portDestiny[1].read() == EAST){
 			arbE->bufferCircular[EAST] = 1;
-		}else if(portExitE == SOUTH){
+		}else if(portDestiny[1].read() == SOUTH){
 			arbS->bufferCircular[EAST] = 1;
-		}else if(portExitE == WEST){
+		}else if(portDestiny[1].read() == WEST){
 			arbW->bufferCircular[EAST] = 1;
-		}else if(portExitE == LOCAL){
+		}else if(portDestiny[1].read() == LOCAL){
 			arbL->bufferCircular[EAST] = 1;
 		}
 
-		if(portExitS == NORTH){
+
+		if(portDestiny[2].read() == NORTH){
 			arbN->bufferCircular[SOUTH] = 1;
-		}else if(portExitS == EAST){
+		}else if(portDestiny[2].read() == EAST){
 			arbE->bufferCircular[SOUTH] = 1;
-		}else if(portExitS == SOUTH){
+		}else if(portDestiny[2].read() == SOUTH){
 			arbS->bufferCircular[SOUTH] = 1;
-		}else if(portExitS == WEST){
+		}else if(portDestiny[2].read() == WEST){
 			arbW->bufferCircular[SOUTH] = 1;
-		}else if(portExitS == LOCAL){
+		}else if(portDestiny[2].read() == LOCAL){
 			arbL->bufferCircular[SOUTH] = 1;
 		}
 
-		if(portExitW == NORTH){
+
+		if(portDestiny[3].read() == NORTH){
 			arbN->bufferCircular[WEST] = 1;
-		}else if(portExitW == EAST){
+		}else if(portDestiny[3].read() == EAST){
 			arbE->bufferCircular[WEST] = 1;
-		}else if(portExitW == SOUTH){
+		}else if(portDestiny[3].read() == SOUTH){
 			arbS->bufferCircular[WEST] = 1;
-		}else if(portExitW == WEST){
+		}else if(portDestiny[3].read() == WEST){
 			arbW->bufferCircular[WEST] = 1;
-		}else if(portExitW == LOCAL){
+		}else if(portDestiny[3].read() == LOCAL){
 			arbL->bufferCircular[WEST] = 1;
 		}
 
-		if(portExitL == NORTH){
+
+		if(portDestiny[4].read() == NORTH){
 			arbN->bufferCircular[LOCAL] = 1;
-		}else if(portExitL == EAST){
+		}else if(portDestiny[4].read() == EAST){
 			arbE->bufferCircular[LOCAL] = 1;
-		}else if(portExitL == SOUTH){
+		}else if(portDestiny[4].read() == SOUTH){
 			arbS->bufferCircular[LOCAL] = 1;
-		}else if(portExitL == WEST){
+		}else if(portDestiny[4].read() == WEST){
 			arbW->bufferCircular[LOCAL] = 1;
-		}else if(portExitL == LOCAL){
+		}else if(portDestiny[4].read() == LOCAL){
 			arbL->bufferCircular[LOCAL] = 1;
 		}
-
 	}
 
-	void execute(){
-		//Chaveamento do buffer norte
-		if((portExitN == NORTH) && (arbN->priority == NORTH)){
-			out_val_N.write(1);
-			if(in_ack_N.read() == 1){
-				if(rokN == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portN = bfN->dout;
-					arbN->bufferCircular[NORTH] = 0;
-				}
-			}
-		}else if((portExitN == EAST) && (arbE->priority == NORTH)){
-			out_val_E.write(1);
-			if(in_ack_E.read() == 1){
-				if(rokN == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portE = bfN->dout;
-					arbE->bufferCircular[NORTH] = 0;
-				}
-			}
-		}else if((portExitN == SOUTH) && (arbS->priority == NORTH)){
-			out_val_S.write(1);
-			if(in_ack_S.read() == 1){
-				if(rokN == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portS = bfN->dout;
-					arbS->bufferCircular[NORTH] = 0;
-				}				
-			}
-		}else if((portExitN == WEST) && (arbW->priority == NORTH)){
-			out_val_W.write(1);
-			if(in_ack_W.read() == 1){
-				if(rokN == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portW = bfN->dout;
-					arbW->bufferCircular[NORTH] = 0;
-				}
-			}
-		}else if((portExitN == LOCAL) && (arbL->priority == NORTH)){
-			out_val_L.write(1);
-			if(in_ack_L.read() == 1){
-				if(rokN == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portL = bfN->dout;
-					arbL->bufferCircular[NORTH] = 0;
-				}
-			}
+
+	void chaveamento_interno(){
+		if((portDestiny[0].read() == NORTH) && (arbN->priority == NORTH)){
+			out_portN = bfN->dout;
+			out_val[0].write(1);
+			//arbN->bufferCircular[NORTH] = 0;
+		}
+		if((portDestiny[0].read() == EAST) && (arbE->priority == NORTH)){
+			out_portE = bfN->dout;
+			out_val[1].write(1);
+			//arbE->bufferCircular[EAST] = 0;
+		}
+		if((portDestiny[0].read() == SOUTH) && (arbS->priority == NORTH)){
+			out_portS = bfN->dout;
+			out_val[2].write(1);
+			//arbS->bufferCircular[SOUTH] = 0;
+		}
+		if((portDestiny[0].read() == WEST) && (arbW->priority == NORTH)){
+			out_portW = bfN->dout;
+			out_val[3].write(1);
+			//arbW->bufferCircular[WEST] = 0;
+		}
+		if((portDestiny[0].read() == LOCAL) && (arbL->priority == NORTH)){
+			out_portL = bfN->dout;
+			out_val[4].write(1);
+			//arbL->bufferCircular[LOCAL] = 0;
 		}
 
 
-		//Chaveamento do buffer leste
-		if((portExitE == NORTH) && (arbN->priority == EAST)){
-			out_val_N.write(1);
-			if(in_ack_E.read() == 1){
-				if(rokE == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portN = bfE->dout;
-					arbN->bufferCircular[EAST] = 0;
-				}
-			}
-		}else if((portExitE == EAST) && (arbE->priority == EAST)){
-			out_val_E.write(1);
-			if(in_ack_E.read() == 1){
-				if(rokE == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portE = bfE->dout;
-					arbE->bufferCircular[EAST] = 0;
-				}				
-			}
-		}else if((portExitE == SOUTH) && (arbS->priority == EAST)){
-			out_val_S.write(1);
-			if(in_ack_S.read() == 1){
-				if(rokE == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portS = bfE->dout;
-					arbS->bufferCircular[EAST] = 0;	
-				}				
-			}
-		}else if((portExitE == WEST) && (arbW->priority == EAST)){
-			out_val_W.write(1);
-			if(in_ack_W.read() == 1){
-				if(rokE == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portW = bfE->dout;
-					arbW->bufferCircular[EAST] = 0;
-				}
-			}
-		}else if((portExitE == LOCAL) && (arbL->priority == EAST)){
-			out_val_L.write(1);
-			if(in_ack_L.read() == 1){
-				if(rokE == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portL = bfE->dout;
-					arbL->bufferCircular[EAST] = 0;
-				}				
-			}
+		if((portDestiny[1].read() == NORTH) && (arbN->priority == EAST)){
+			out_portN = bfE->dout;
+			out_val[0].write(1);
+			//arbN->bufferCircular[NORTH] = 0;
+		}
+		if((portDestiny[1].read() == EAST) && (arbE->priority == EAST)){
+			out_portE = bfE->dout;
+			out_val[1].write(1);
+			//arbE->bufferCircular[EAST] = 0;
+		}
+		if((portDestiny[1].read() == SOUTH) && (arbS->priority == EAST)){
+			out_portS = bfE->dout;
+			out_val[2].write(1);
+			//arbS->bufferCircular[SOUTH] = 0;
+		}
+		if((portDestiny[1].read() == WEST) && (arbW->priority == EAST)){
+			out_portW = bfE->dout;
+			out_val[3].write(1);
+			//arbW->bufferCircular[WEST] = 0;
+		}
+		if((portDestiny[1].read() == LOCAL) && (arbL->priority == EAST)){
+			out_portL = bfE->dout;
+			out_val[4].write(1);
+			//arbL->bufferCircular[LOCAL] = 0;
 		}
 
 
-		//Chaveamento buffer sul
-		if((portExitS == NORTH) && (arbN->priority == SOUTH)){
-			out_val_N.write(1);
-			if(in_ack_N.read() == 1){
-				if(rokS == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portN = bfS->dout;
-					arbN->bufferCircular[SOUTH] = 0;
-				}				
-			}
-		}else if((portExitS == EAST) && (arbE->priority == SOUTH)){
-			out_val_E.write(1);
-			if(in_ack_E.read() == 1){
-				if(rokS == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portE = bfS->dout;
-					arbE->bufferCircular[SOUTH] = 0;
-				}				
-			}
-		}else if((portExitS == SOUTH) && (arbS->priority == SOUTH)){
-			out_val_S.write(1);
-			if(in_ack_S.read() == 1){
-				if(rokS == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portS = bfS->dout;
-					arbS->bufferCircular[SOUTH] = 0;
-				}				
-			}
-		}else if((portExitS == WEST) && (arbW->priority == SOUTH)){
-			out_val_W.write(1);
-			if(in_ack_W.read() == 1){
-				if(rokS == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portW = bfS->dout;
-					arbW->bufferCircular[SOUTH] = 0;
-				}				
-			}
-		}else if((portExitS == LOCAL) && (arbL->priority == SOUTH)){
-			out_val_L.write(1);
-			if(in_ack_L.read() == 1){
-				if(rokS == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portL = bfS->dout;
-					arbL->bufferCircular[SOUTH] = 0;
-				}				
-			}
+		if((portDestiny[2].read() == NORTH) && (arbN->priority == SOUTH)){
+			out_portN = bfS->dout;
+			out_val[0].write(1);
+			//arbN->bufferCircular[NORTH] = 0;
+		}
+		if((portDestiny[2].read() == EAST) && (arbE->priority == SOUTH)){
+			out_portE = bfS->dout;
+			out_val[1].write(1);
+			//arbE->bufferCircular[EAST] = 0;
+		}
+		if((portDestiny[2].read() == SOUTH) && (arbS->priority == SOUTH)){
+			out_portS = bfS->dout;
+			out_val[2].write(1);
+			//arbS->bufferCircular[SOUTH] = 0;
+		}
+		if((portDestiny[2].read() == WEST) && (arbW->priority == SOUTH)){
+			out_portW = bfS->dout;
+			out_val[3].write(1);
+			//arbW->bufferCircular[WEST] = 0;
+		}
+		if((portDestiny[2].read() == LOCAL) && (arbL->priority == SOUTH)){
+			out_portL = bfS->dout;
+			out_val[4].write(1);
+			//arbL->bufferCircular[LOCAL] = 0;
 		}
 
 
-		//Chaveamento do buffer oeste
-		if((portExitW == NORTH) && (arbN->priority == WEST)){
-			out_val_N.write(1);
-			if(in_ack_N.read() == 1){
-				if(rokW == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portN = bfW->dout;
-					arbN->bufferCircular[WEST] = 0;
-				}				
-			}
-		}else if((portExitW == EAST) && (arbE->priority == WEST)){
-			out_val_E.write(1);
-			if(in_ack_E.read() == 1){
-				if(rokW == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portE = bfW->dout;
-					arbE->bufferCircular[WEST] = 0;
-				}				
-			}
-		}else if((portExitW == SOUTH) && (arbS->priority == WEST)){
-			out_val_S.write(1);
-			if(in_ack_S.read() == 1){
-				if(rokW == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portS = bfW->dout;
-					arbS->bufferCircular[WEST] = 0;
-				}				
-			}
-		}else if((portExitW == WEST) && (arbW->priority == WEST)){
-			out_val_W.write(1);
-			if(in_ack_W.read() == 1){
-				if(rokW == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portW = bfW->dout;
-					arbW->bufferCircular[WEST] = 0;
-				}				
-			}
-		}else if((portExitW == LOCAL) && (arbL->priority == WEST)){
-			out_val_L.write(1);
-			if(in_ack_L.read() == 1){
-				if(rokW == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portL = bfW->dout;
-					arbL->bufferCircular[WEST] = 0;
-				}				
-			}
+		if((portDestiny[3].read() == NORTH) && (arbN->priority == WEST)){
+			out_portN = bfW->dout;
+			out_val[0].write(1);
+			//arbN->bufferCircular[NORTH] = 0;
+		}
+		if((portDestiny[3].read() == EAST) && (arbE->priority == WEST)){
+			out_portE = bfW->dout;
+			out_val[1].write(1);
+			//arbE->bufferCircular[EAST] = 0;
+		}
+		if((portDestiny[3].read() == SOUTH) && (arbS->priority == WEST)){
+			out_portS = bfW->dout;
+			out_val[2].write(1);
+			//arbS->bufferCircular[SOUTH] = 0;
+		}
+		if((portDestiny[3].read() == WEST) && (arbW->priority == WEST)){
+			out_portW = bfW->dout;
+			out_val[3].write(1);
+			//arbW->bufferCircular[WEST] = 0;
+		}
+		if((portDestiny[3].read() == LOCAL) && (arbL->priority == WEST)){
+			out_portL = bfW->dout;
+			out_val[4].write(1);
+			//arbL->bufferCircular[LOCAL] = 0;
 		}
 
 
-		//Chaveamento para o buffer local
-		if((portExitL == NORTH) && (arbN->priority == LOCAL)){
-			out_val_N.write(1);
-			if(in_ack_N.read() == 1){
-				if(rokL == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portN = bfL->dout;
-					arbN->bufferCircular[LOCAL] = 0;
-				}				
-			}
-		}else if((portExitL == EAST) && (arbE->priority == LOCAL)){
-			out_val_E.write(1);
-			if(in_ack_E.read() == 1){
-				if(rokL == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portE = bfL->dout;
-					arbE->bufferCircular[LOCAL] = 0;
-				}				
-			}
-		}else if((portExitL == SOUTH) && (arbS->priority == LOCAL)){
-			out_val_S.write(1);
-			if(in_ack_S.read() == 1){
-				if(rokL == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portS = bfL->dout;
-					arbS->bufferCircular[LOCAL] = 0;
-				}				
-			}
-		}else if((portExitL == WEST) && (arbW->priority == LOCAL)){
-			out_val_W.write(1);
-			if(in_ack_W.read() == 1){
-				if(rokL == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portW = bfL->dout;
-					arbW->bufferCircular[LOCAL] = 0;
-				}				
-			}
-		}else if((portExitL == LOCAL) && (arbL->priority == LOCAL)){
-			out_val_L.write(1);
-			if(in_ack_L.read() == 1){
-				if(rokL == 0){
-					cout << "Buffer Vazio" << endl;
-				}else{
-					out_portL = bfL->dout;
-					arbL->bufferCircular[LOCAL] = 0;
-				}
-			}
+		if((portDestiny[4].read() == NORTH) && (arbN->priority == LOCAL)){
+			out_portN = bfL->dout;
+			out_val[0].write(1);
+			//arbN->bufferCircular[NORTH] = 0;
+		}
+		if((portDestiny[4].read() == EAST) && (arbE->priority == LOCAL)){
+			out_portE = bfL->dout;
+			out_val[1].write(1);
+			//arbE->bufferCircular[EAST] = 0;
+		}
+		if((portDestiny[4].read() == SOUTH) && (arbS->priority == LOCAL)){
+			out_portS = bfL->dout;
+			out_val[2].write(1);
+			//arbS->bufferCircular[SOUTH] = 0;
+		}
+		if((portDestiny[4].read() == WEST) && (arbW->priority == LOCAL)){
+			out_portW = bfL->dout;
+			out_val[3].write(1);
+			//arbW->bufferCircular[WEST] = 0;
+		}
+		if((portDestiny[4].read() == LOCAL) && (arbL->priority == LOCAL)){
+			out_portL = bfL->dout;
+			out_val[4].write(1);
+			//arbL->bufferCircular[LOCAL] = 0;
 		}
 	}
-	
-	
+
+	void print(){
+		//cout << portDestiny[4] << endl;
+		cout << out_portE.payload << endl;
+	}
+
 
 	SC_CTOR(router){
 		//Instanciando o controle de fluxo
@@ -470,33 +647,8 @@ SC_MODULE(router){
 		arbW = new arbiter("arbW");
 		arbL = new arbiter("arbL");
 
-		//Ligação dos entradas do controle de fluxo para as portas
-		fcN->in_val(in_val_N);
-		fcE->in_val(in_val_E);
-		fcS->in_val(in_val_S);
-		fcW->in_val(in_val_W);
-		fcL->in_val(in_val_L);
 
-		//Ligação da saída do controle de fluxo
-		fcN->out_ack(out_ack_N);
-		fcE->out_ack(out_ack_E);
-		fcS->out_ack(out_ack_S);
-		fcW->out_ack(out_ack_W);
-		fcL->out_ack(out_ack_L);
-
-		//Ligação do controle de fluxo e os buffers
-		fcN->wok(wok_N);
-		fcN->wr(wr_N);
-		fcE->wok(wok_E);
-		fcE->wr(wr_E);
-		fcS->wok(wok_S);
-		fcS->wr(wr_S);
-		fcW->wok(wok_W);
-		fcW->wr(wr_W);
-		fcL->wok(wok_L);
-		fcL->wr(wr_L);
-	
-		//Ligação do clock do controle de fluxo
+		//Controle de fluxo
 		fcN->clk(clk);
 		fcE->clk(clk);
 		fcS->clk(clk);
@@ -504,136 +656,44 @@ SC_MODULE(router){
 		fcL->clk(clk);
 
 
-		//Ligação entre os buffers e controle de fluxo
-		bfN->wr(wr_N);
-		bfN->wok(wok_N);
-		bfE->wr(wr_E);
-		bfE->wok(wok_E);
-		bfS->wr(wr_S);
-		bfS->wok(wok_S);
-		bfW->wr(wr_W);
-		bfW->wok(wok_W);
-		bfL->wr(wr_L);
-		bfL->wok(wok_L);
-
-		//Controle do chaveamento
-		bfN->rd(rd_N);
-		bfE->rd(rd_E);
-		bfS->rd(rd_S);
-		bfW->rd(rd_W);
-		bfL->rd(rd_L);
-
-		bfN->rok(rok_N);
-		bfE->rok(rok_E);
-		bfS->rok(rok_S);
-		bfW->rok(rok_W);
-		bfL->rok(rok_L);
-
-		//Ligação das entradas dos buffers
-		bfN->din = in_portN;
-		bfE->din = in_portE;
-		bfS->din = in_portS;
-		bfW->din = in_portW;
-		bfL->din = in_portL;
-
-		//Ligação do clock dos buffers
+		//Buffers
 		bfN->clk(clk);
 		bfE->clk(clk);
 		bfS->clk(clk);
 		bfW->clk(clk);
 		bfL->clk(clk);
 
-		//Destino dos flits que estão nos buffers;
-		destiny_N = bfN->destiny_flit;
-		destiny_E = bfE->destiny_flit;
-		destiny_S = bfS->destiny_flit;
-		destiny_W = bfW->destiny_flit;
-		destiny_L = bfL->destiny_flit;
-
-
-		//Ligação dos roteamentos
+		
+		//Roteamento
 		rtgN->clk(clk);
 		rtgE->clk(clk);
 		rtgS->clk(clk);
 		rtgW->clk(clk);
 		rtgL->clk(clk);
 
-		rtgN->tabela = tabela;
-		rtgE->tabela = tabela;
-		rtgS->tabela = tabela;
-		rtgW->tabela = tabela;
-		rtgL->tabela = tabela;
 
-		rtgN->destiny(destiny_N);
-		rtgE->destiny(destiny_E);
-		rtgS->destiny(destiny_S);
-		rtgW->destiny(destiny_W);
-		rtgL->destiny(destiny_L);
-
-		rtgN->portDestiny(portDestiny_N);
-		rtgE->portDestiny(portDestiny_E);
-		rtgS->portDestiny(portDestiny_S);
-		rtgW->portDestiny(portDestiny_W);
-		rtgL->portDestiny(portDestiny_L);
-
-
-		//Ligação dos componentes dos árbitros
+		//Arbitragem
 		arbN->clk(clk);
 		arbE->clk(clk);
 		arbS->clk(clk);
 		arbW->clk(clk);
 		arbL->clk(clk);
 
-		arbN->rdN(rd_N);
-		arbN->rdE(rd_E);
-		arbN->rdS(rd_S);
-		arbN->rdW(rd_W);
-		arbN->rdL(rd_L);
 
-		arbE->rdN(rd_N);
-		arbE->rdE(rd_E);
-		arbE->rdS(rd_S);
-		arbE->rdW(rd_W);
-		arbE->rdL(rd_L);
-		
-		arbS->rdN(rd_N);
-		arbS->rdE(rd_E);
-		arbS->rdS(rd_S);
-		arbS->rdW(rd_W);
-		arbS->rdL(rd_L);
-		
-		arbW->rdN(rd_N);
-		arbW->rdE(rd_E);
-		arbW->rdS(rd_S);
-		arbW->rdW(rd_W);
-		arbW->rdL(rd_L);
-		
-		arbL->rdN(rd_N);
-		arbL->rdE(rd_E);
-		arbL->rdS(rd_S);
-		arbL->rdW(rd_W);
-		arbL->rdL(rd_L);
-		
-		//Seta os destino dos flits
-		portExitN = portDestiny_N;
-		portExitE = portDestiny_E;
-		portExitS = portDestiny_S;
-		portExitW = portDestiny_W;
-		portExitL = portDestiny_L;
-
-		//Seta os as saídas rok dos buffers
-		rok_N = rokN;
-		rok_E = rokE;
-		rok_S = rokS;
-		rok_W = rokW;
-		rok_L = rokL;
-
-
-		SC_METHOD(execute);
+		SC_METHOD(print);
+		sensitive << clk.pos();
+		SC_METHOD(map_fc);
+		sensitive << clk.pos();
+		SC_METHOD(map_bf);
+		sensitive << clk.pos();
+		SC_METHOD(map_rtg);
+		sensitive << clk.pos();
+		SC_METHOD(map_arb);
+		sensitive << clk.pos();
+		SC_METHOD(chaveamento_interno);
 		sensitive << clk.pos();
 		SC_METHOD(request_arbiter);
 		sensitive << clk.pos();
-		//SC_METHOD(conexao_fc);
-		//sensitive << in_val_N << in_val_E << in_val_S << in_val_W << in_val_L << clk;
+
 	}
 };

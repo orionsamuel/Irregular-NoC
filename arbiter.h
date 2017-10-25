@@ -6,11 +6,7 @@ using namespace std;
 
 SC_MODULE(arbiter){
 	sc_in<bool> clk{"clk"};
-	sc_out<sc_int<32> > rdN{"rdN"};
-	sc_out<sc_int<32> > rdE{"rdE"};
-	sc_out<sc_int<32> > rdS{"rdS"};
-	sc_out<sc_int<32> > rdW{"rdW"};
-	sc_out<sc_int<32> > rdL{"rdL"};
+	sc_signal<sc_int<32> > rd[5];
 	sc_int<32> priority;
 	sc_int<32> bufferCircular[5];
 	sc_int<32> pointer;
@@ -24,19 +20,19 @@ SC_MODULE(arbiter){
 		}
 		if ((bufferCircular[NORTH] == 1) && (this->pointer == NORTH)){
 			priority = NORTH;
-			rdN.write(1);
+			rd[0].write(1);
 		}else if ((bufferCircular[EAST] == 1) && (this->pointer == EAST)){
 			priority = EAST;
-			rdE.write(1);
+			rd[1].write(1);
 		}else if ((bufferCircular[SOUTH] == 1) && (this->pointer == SOUTH)){
 			priority = SOUTH;
-			rdS.write(1);
+			rd[2].write(1);
 		}else if ((bufferCircular[WEST] == 1) && (this->pointer == WEST)){
 			priority = WEST;
-			rdW.write(1);
+			rd[3].write(1);
 		}else if ((bufferCircular[LOCAL] == 1) && (this->pointer == LOCAL)){
 			priority = LOCAL;
-			rdL.write(1);
+			rd[4].write(1);
 		}
 	}
 
