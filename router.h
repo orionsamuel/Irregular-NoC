@@ -614,7 +614,7 @@ SC_MODULE(router){
 
 	void print(){
 		//cout << portDestiny[4] << endl;
-		cout << out_portE.payload << endl;
+		//cout << out_val[1] << endl;
 	}
 
 

@@ -2,7 +2,33 @@
 #include <iostream>
 #include "router.h"
 #include "parameters.h"
-#include <vector>
+
+
+SC_MODULE(NoC){
+
+	sc_in<bool> clk;
+
+	router *rt0, *rt1;
+	routing_table table0, table1;
+
+	void chaveamento_externo(){
+		rt1->in_portN = rt0->out_portE;
+		rt1->in_val[0].write(rt0->out_val[1]);
+	}
+
+
+	SC_CTOR(NoC){
+		rt0 = new router("rt0");
+		rt1 = new router("rt1");
+
+		rt0->clk(clk);
+		rt1->clk(clk);
+
+		SC_METHOD(chaveamento_externo);
+		sensitive << clk.pos();
+
+	}
+};
 
 using namespace std;
 
@@ -10,52 +36,38 @@ int sc_main (int argc, char* argv[]){
 
 	sc_clock clock("Clock", 10, SC_NS);
 
-	routing_table table0;
+	routing_table table0, table1;
 
 	table0.push_back({3, WEST, 5});
-	table0.push_back({4, EAST, 2});
+	table0.push_back({4, SOUTH, 2});
 	table0.push_back({3, NORTH, 8});
 	table0.push_back({4, EAST, 1});
+	table0.push_back({0, LOCAL, 0});
 
-	flit in_portN;
-	flit in_portE;
-	flit in_portS;
-	flit in_portW;
-	flit in_portL;
-
-	flit out_portN;
-	flit out_portE;
-	flit out_portS;
-	flit out_portW;
-	flit out_portL;
-
-	in_portL.type = 1;
-	in_portL.payload = 8;
-	in_portL.destiny = 4;
+	table1.push_back({3, NORTH, 5});
+	table1.push_back({4, EAST, 2});
+	table1.push_back({3, SOUTH, 8});
+	table1.push_back({4, WEST, 1});
+	table1.push_back({1, LOCAL,0});
 
 
-	router rt("ROUTER");
-	rt.clk(clock);
+	NoC rede("NoC");
+	rede.clk(clock);
 
-	rt.in_val[4].write(1);
+	rede.rt0->position = 0;
+	rede.rt1->position = 1;
 
-	rt.tabela = table0;
+	rede.rt0->in_val[4].write(1);
 
-	rt.in_portN = in_portN;
-	rt.in_portE = in_portE;
-	rt.in_portS = in_portS;
-	rt.in_portW = in_portW;
-	rt.in_portL = in_portL;
+	rede.rt0->tabela = table0;
+	rede.rt0->in_portL.type = 1;
+	rede.rt0->in_portL.payload = 8;
+	rede.rt0->in_portL.destiny = 4;
 
-	out_portN = rt.out_portN;
-	out_portE = rt.out_portE;
-	out_portS = rt.out_portS;
-	out_portW = rt.out_portW;
-	out_portL = rt.out_portL;
+	rede.rt1->tabela = table1;
+	
+	sc_start(500, SC_NS);
 
-
-	sc_start();
-
-	//cout << in_portL.destiny << endl;
+	cout << rede.rt1->out_portW.destiny << endl;	
 
 }
