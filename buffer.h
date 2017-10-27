@@ -31,7 +31,7 @@ SC_MODULE (Buffer){
 		//cout << wr << endl;
 		if ((wr.read() == 1) && (flits.size() == length)){
 			wok.write(0); // error, value not added
-		}else if((wr.read() == 1) && (flits.size() < length)){
+		}else if((wr.read() == 1) && (flits.size() < length)){	
 			flits.push(din);
 			wok.write(1);
 		}	

@@ -23,11 +23,8 @@ SC_MODULE(router){
 	flit in_portW;
 	flit in_portL;
 
+	flit out_port[5];
 	flit out_portN;
-	flit out_portE;
-	flit out_portS;
-	flit out_portW;
-	flit out_portL;
 
 	//Tabela de roteamento
 	routing_table tabela;
@@ -147,91 +144,14 @@ SC_MODULE(router){
 		rtgW->tabela =  tabela;
 		rtgL->tabela =  tabela;
 
-		if(bfN->din.destiny == NORTH){
-			rtgN->destiny.write(NORTH);
-		}
-		if(bfN->din.destiny == EAST){
-			rtgN->destiny.write(EAST);
-		}
-		if(bfN->din.destiny == SOUTH){
-			rtgN->destiny.write(SOUTH);
-		}
-		if(bfN->din.destiny == WEST){
-			rtgN->destiny.write(WEST);
-		}
-		if(bfN->din.destiny == LOCAL){
-			rtgN->destiny.write(LOCAL);
-		}
 
+		rtgN->destiny.write(bfN->din.destiny);
+		rtgE->destiny.write(bfE->din.destiny);
+		rtgS->destiny.write(bfS->din.destiny);
+		rtgW->destiny.write(bfW->din.destiny);
+		rtgL->destiny.write(bfL->din.destiny);
 
-		if(bfE->din.destiny == NORTH){
-			rtgE->destiny.write(NORTH);
-		}
-		if(bfE->din.destiny == EAST){
-			rtgE->destiny.write(EAST);
-		}
-		if(bfE->din.destiny == SOUTH){
-			rtgE->destiny.write(SOUTH);
-		}
-		if(bfE->din.destiny == WEST){
-			rtgE->destiny.write(WEST);
-		}
-		if(bfE->din.destiny == LOCAL){
-			rtgE->destiny.write(LOCAL);
-		}
-
-
-		if(bfS->din.destiny == NORTH){
-			rtgS->destiny.write(NORTH);
-		}
-		if(bfS->din.destiny == EAST){
-			rtgS->destiny.write(EAST);
-		}
-		if(bfS->din.destiny == SOUTH){
-			rtgS->destiny.write(SOUTH);
-		}
-		if(bfS->din.destiny == WEST){
-			rtgS->destiny.write(WEST);
-		}
-		if(bfS->din.destiny == LOCAL){
-			rtgS->destiny.write(LOCAL);
-		}
-
-
-		if(bfW->din.destiny == NORTH){
-			rtgW->destiny.write(NORTH);
-		}
-		if(bfW->din.destiny == EAST){
-			rtgW->destiny.write(EAST);
-		}
-		if(bfW->din.destiny == SOUTH){
-			rtgW->destiny.write(SOUTH);
-		}
-		if(bfW->din.destiny == WEST){
-			rtgW->destiny.write(WEST);
-		}
-		if(bfW->din.destiny == LOCAL){
-			rtgW->destiny.write(LOCAL);
-		}
-
-
-		if(bfL->din.destiny == NORTH){
-			rtgL->destiny.write(NORTH);
-		}
-		if(bfL->din.destiny == EAST){
-			rtgL->destiny.write(EAST);
-		}
-		if(bfL->din.destiny == SOUTH){
-			rtgL->destiny.write(SOUTH);
-		}
-		if(bfL->din.destiny == WEST){
-			rtgL->destiny.write(WEST);
-		}
-		if(bfL->din.destiny == LOCAL){
-			rtgL->destiny.write(LOCAL);
-		}
-
-
+	
 		if(rtgN->portDestiny.read() == NORTH){
 			portDestiny[0].write(NORTH);
 		}
@@ -478,137 +398,138 @@ SC_MODULE(router){
 
 	void chaveamento_interno(){
 		if((portDestiny[0].read() == NORTH) && (arbN->priority == NORTH)){
-			out_portN = bfN->dout;
+			out_port[0] = bfN->dout;
 			out_val[0].write(1);
-			//arbN->bufferCircular[NORTH] = 0;
+			arbN->bufferCircular[NORTH] = 0;
 		}
 		if((portDestiny[0].read() == EAST) && (arbE->priority == NORTH)){
-			out_portE = bfN->dout;
+			out_port[1] = bfN->dout;
 			out_val[1].write(1);
-			//arbE->bufferCircular[EAST] = 0;
+			arbE->bufferCircular[EAST] = 0;
 		}
 		if((portDestiny[0].read() == SOUTH) && (arbS->priority == NORTH)){
-			out_portS = bfN->dout;
+			out_port[2] = bfN->dout;
 			out_val[2].write(1);
-			//arbS->bufferCircular[SOUTH] = 0;
+			arbS->bufferCircular[SOUTH] = 0;
 		}
 		if((portDestiny[0].read() == WEST) && (arbW->priority == NORTH)){
-			out_portW = bfN->dout;
+			out_port[3] = bfN->dout;
 			out_val[3].write(1);
-			//arbW->bufferCircular[WEST] = 0;
+			arbW->bufferCircular[WEST] = 0;
 		}
 		if((portDestiny[0].read() == LOCAL) && (arbL->priority == NORTH)){
-			out_portL = bfN->dout;
+			out_port[4] = bfN->dout;
 			out_val[4].write(1);
-			//arbL->bufferCircular[LOCAL] = 0;
+			arbL->bufferCircular[LOCAL] = 0;
 		}
 
 
 		if((portDestiny[1].read() == NORTH) && (arbN->priority == EAST)){
 			out_portN = bfE->dout;
 			out_val[0].write(1);
-			//arbN->bufferCircular[NORTH] = 0;
+			//cout << out_port[0].payload << endl;
+			arbN->bufferCircular[NORTH] = 0;
 		}
 		if((portDestiny[1].read() == EAST) && (arbE->priority == EAST)){
-			out_portE = bfE->dout;
+			out_port[1] = bfE->dout;
 			out_val[1].write(1);
-			//arbE->bufferCircular[EAST] = 0;
+			arbE->bufferCircular[EAST] = 0;
 		}
 		if((portDestiny[1].read() == SOUTH) && (arbS->priority == EAST)){
-			out_portS = bfE->dout;
+			out_port[2] = bfE->dout;
 			out_val[2].write(1);
-			//arbS->bufferCircular[SOUTH] = 0;
+			arbS->bufferCircular[SOUTH] = 0;
 		}
 		if((portDestiny[1].read() == WEST) && (arbW->priority == EAST)){
-			out_portW = bfE->dout;
+			out_port[3] = bfE->dout;
 			out_val[3].write(1);
-			//arbW->bufferCircular[WEST] = 0;
+			arbW->bufferCircular[WEST] = 0;
 		}
 		if((portDestiny[1].read() == LOCAL) && (arbL->priority == EAST)){
-			out_portL = bfE->dout;
+			out_port[4] = bfE->dout;
 			out_val[4].write(1);
-			//arbL->bufferCircular[LOCAL] = 0;
+			arbL->bufferCircular[LOCAL] = 0;
 		}
 
 
 		if((portDestiny[2].read() == NORTH) && (arbN->priority == SOUTH)){
-			out_portN = bfS->dout;
+			out_port[0] = bfS->dout;
 			out_val[0].write(1);
-			//arbN->bufferCircular[NORTH] = 0;
+			arbN->bufferCircular[NORTH] = 0;
 		}
 		if((portDestiny[2].read() == EAST) && (arbE->priority == SOUTH)){
-			out_portE = bfS->dout;
+			out_port[1] = bfS->dout;
 			out_val[1].write(1);
-			//arbE->bufferCircular[EAST] = 0;
+			arbE->bufferCircular[EAST] = 0;
 		}
 		if((portDestiny[2].read() == SOUTH) && (arbS->priority == SOUTH)){
-			out_portS = bfS->dout;
+			out_port[2] = bfS->dout;
 			out_val[2].write(1);
-			//arbS->bufferCircular[SOUTH] = 0;
+			arbS->bufferCircular[SOUTH] = 0;
 		}
 		if((portDestiny[2].read() == WEST) && (arbW->priority == SOUTH)){
-			out_portW = bfS->dout;
+			out_port[3] = bfS->dout;
 			out_val[3].write(1);
-			//arbW->bufferCircular[WEST] = 0;
+			arbW->bufferCircular[WEST] = 0;
 		}
 		if((portDestiny[2].read() == LOCAL) && (arbL->priority == SOUTH)){
-			out_portL = bfS->dout;
+			out_port[4] = bfS->dout;
 			out_val[4].write(1);
-			//arbL->bufferCircular[LOCAL] = 0;
+			arbL->bufferCircular[LOCAL] = 0;
 		}
 
 
 		if((portDestiny[3].read() == NORTH) && (arbN->priority == WEST)){
-			out_portN = bfW->dout;
+			out_port[0] = bfW->dout;
 			out_val[0].write(1);
-			//arbN->bufferCircular[NORTH] = 0;
+			arbN->bufferCircular[NORTH] = 0;
 		}
 		if((portDestiny[3].read() == EAST) && (arbE->priority == WEST)){
-			out_portE = bfW->dout;
+			out_port[1] = bfW->dout;
 			out_val[1].write(1);
-			//arbE->bufferCircular[EAST] = 0;
+			arbE->bufferCircular[EAST] = 0;
 		}
 		if((portDestiny[3].read() == SOUTH) && (arbS->priority == WEST)){
-			out_portS = bfW->dout;
+			out_port[2] = bfW->dout;
 			out_val[2].write(1);
-			//arbS->bufferCircular[SOUTH] = 0;
+			arbS->bufferCircular[SOUTH] = 0;
 		}
 		if((portDestiny[3].read() == WEST) && (arbW->priority == WEST)){
-			out_portW = bfW->dout;
+			out_port[3] = bfW->dout;
 			out_val[3].write(1);
-			//arbW->bufferCircular[WEST] = 0;
+			arbW->bufferCircular[WEST] = 0;
 		}
 		if((portDestiny[3].read() == LOCAL) && (arbL->priority == WEST)){
-			out_portL = bfW->dout;
+			out_port[4] = bfW->dout;
 			out_val[4].write(1);
-			//arbL->bufferCircular[LOCAL] = 0;
+			arbL->bufferCircular[LOCAL] = 0;
 		}
 
 
 		if((portDestiny[4].read() == NORTH) && (arbN->priority == LOCAL)){
-			out_portN = bfL->dout;
+			out_port[0] = bfL->dout;
 			out_val[0].write(1);
-			//arbN->bufferCircular[NORTH] = 0;
+			arbN->bufferCircular[NORTH] = 0;
 		}
 		if((portDestiny[4].read() == EAST) && (arbE->priority == LOCAL)){
-			out_portE = bfL->dout;
+			out_port[1] = bfL->dout;
 			out_val[1].write(1);
-			//arbE->bufferCircular[EAST] = 0;
+			arbE->bufferCircular[EAST] = 0;
 		}
 		if((portDestiny[4].read() == SOUTH) && (arbS->priority == LOCAL)){
-			out_portS = bfL->dout;
+			out_port[2] = bfL->dout;
 			out_val[2].write(1);
-			//arbS->bufferCircular[SOUTH] = 0;
+			arbS->bufferCircular[SOUTH] = 0;
 		}
 		if((portDestiny[4].read() == WEST) && (arbW->priority == LOCAL)){
-			out_portW = bfL->dout;
+			out_port[3] = bfL->dout;
 			out_val[3].write(1);
-			//arbW->bufferCircular[WEST] = 0;
+			arbW->bufferCircular[WEST] = 0;
 		}
 		if((portDestiny[4].read() == LOCAL) && (arbL->priority == LOCAL)){
-			out_portL = bfL->dout;
+			out_port[4] = bfL->dout;
 			out_val[4].write(1);
-			//arbL->bufferCircular[LOCAL] = 0;
+			arbL->bufferCircular[LOCAL] = 0;
 		}
 	}
 

@@ -1,91 +1,105 @@
+#include "systemc.h"
+#include <iostream>
 #include "router.h"
 #include "parameters.h"
 #include "packet.h"
-#include <iostream>
 
 using namespace std;
 
 SC_MODULE(NoC){
 
-	sc_clock clk; 
+	sc_in<bool> clk;
 
-	router *r0, *r1, *r2;
-	packet pkt;
-
+	router *rt[4];
 	
 
-	SC_CTOR(NoC):
-
-		clk ("clock", 10, SC_NS){
-
-		pkt.destiny = 2;			
-			
-		r0 = new router("r0");
-		r1 = new router("r1");
-		r2 = new router("r2");
-
-		//Mapeamento dos roteadores
-		r0->position = 0;
-		r1->position = 1;
-		r2->position = 2;
-
-		for (int i = 0; i < SIZE_FLIT_PACKET; i++){
-			r0->in_portL = pkt.flit_packet[i];
-		}
-
-		r0->clk(clk);
-		r1->clk(clk);
-		r2->clk(clk);
-
-		r0->coreNumbers = 3;
-		r1->coreNumbers = 3;
-		r2->coreNumbers = 3;
-
-		r0->out_portW = r1->in_portN;
-		r0->out_portE = r2->in_portN;
-		r1->in_val_N(r0->out_val_W);
-		r2->in_val_N(r0->out_val_E);
-
-		r1->out_portN = r0->in_portW;
-		r1->out_portE = r2->in_portW;
-		r0->in_val_W(r0->out_val_N);
-		r2->in_val_W(r0->out_val_E);
-
-		r2->out_portN = r0->in_portE;
-		r2->out_portW = r1->in_portE;
-		r0->in_val_E(r0->out_val_N);
-		r1->in_val_E(r0->out_val_W);
-
-		routing_table table0;
-		routing_table table1;
-		routing_table table2;
-
-		table0.push_back({1, WEST, 1});
-		table0.push_back({1, EAST, 2});
-		table0.push_back({2, WEST, 2});
-		table0.push_back({1, EAST, 1});
-		table1.push_back({0, NORTH, 1});
-		table1.push_back({0, EAST, 2});
-		table1.push_back({2, NORTH, 2});
-		table1.push_back({2, EAST, 1});
-		table2.push_back({0, NORTH, 1});
-		table2.push_back({0, WEST, 2});
-		table2.push_back({1, NORTH, 2});
-		table2.push_back({1, WEST, 1});
-
-		r0->tabela = table0;
-		r1->tabela = table1;
-		r2->tabela = table2;
-
-		cout << r2->out_portL.destiny << endl;
+	void chaveamento_externo(){
+		rt[1]->in_portN = rt[0]->out_port[1];
+		rt[1]->in_val[0].write(rt[0]->out_val[1]);
+		rt[3]->in_portE = rt[2]->out_port[2];
+		rt[3]->in_val[1].write(rt[2]->out_val[2]); 
 	}
 
+
+	SC_CTOR(NoC){
+		rt[0] = new router("rt");
+		rt[1] = new router("rt");
+		rt[2] = new router("rt");
+		rt[3] = new router("rt");
+		
+		rt[0]->clk(clk);
+		rt[1]->clk(clk);
+		rt[2]->clk(clk);
+		rt[3]->clk(clk);
+
+		SC_METHOD(chaveamento_externo);
+		sensitive << clk.pos();
+
+	}
 };
 
-int sc_main (int argc, char* argv[]){
-	
-	NoC *rede();
-	sc_start(10000, SC_NS);
+using namespace std;
 
-	return 0;
+int sc_main (int argc, char* argv[]){
+
+		sc_clock clock("Clock", 10, SC_NS);
+
+	routing_table table[4];
+
+	table[0].push_back({3, WEST, 5});
+	table[0].push_back({4, SOUTH, 2});
+	table[0].push_back({3, NORTH, 8});
+	table[0].push_back({4, EAST, 1});
+	table[0].push_back({0, LOCAL, 0});
+
+	table[1].push_back({3, NORTH, 5});
+	table[1].push_back({4, EAST, 2});
+	table[1].push_back({3, SOUTH, 8});
+	table[1].push_back({4, WEST, 1});
+	table[1].push_back({1, LOCAL,0});
+
+	table[2].push_back({5, SOUTH, 5});
+	table[2].push_back({4, EAST, 2});
+	table[2].push_back({5, NORTH, 8});
+	table[2].push_back({4, WEST, 1});
+	table[2].push_back({2, LOCAL,0});
+
+	table[3].push_back({4, NORTH, 5});
+	table[3].push_back({5, NORTH, 2});
+	table[3].push_back({5, SOUTH, 8});
+	table[3].push_back({4, EAST, 1});
+	table[3].push_back({3, LOCAL,0});
+
+
+	NoC rede("NoC");
+	rede.clk(clock);
+
+	rede.rt[0]->position = 0;
+	rede.rt[1]->position = 1;
+	rede.rt[2]->position = 2;
+	rede.rt[3]->position = 3;
+
+	rede.rt[0]->in_val[4].write(1);
+
+	rede.rt[0]->tabela = table[0];
+	rede.rt[0]->in_portL.type = 1;
+	rede.rt[0]->in_portL.payload = 8;
+	rede.rt[0]->in_portL.destiny = 4;
+
+	rede.rt[1]->tabela = table[1];
+
+	rede.rt[2]->in_val[4].write(1);
+
+	rede.rt[2]->tabela = table[2];
+	rede.rt[2]->in_portL.type = 1;
+	rede.rt[2]->in_portL.payload = 10;
+	rede.rt[2]->in_portL.destiny = 5;
+
+	rede.rt[3]->tabela = table[3];
+	
+	sc_start(500, SC_NS);
+
+	cout << rede.rt[1]->out_port[3].destiny << endl;
+	cout << rede.rt[3]->out_port[0].payload << endl;	
+
 }
