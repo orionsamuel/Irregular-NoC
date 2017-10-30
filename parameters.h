@@ -18,9 +18,9 @@ using namespace std;
 #define ERROR 5
 
 #define BEGIN_PACKET 0
-#define INSTRUCION 1
+#define INSTRUCTION 1
 #define END_PACKET 2
-#define SIZE_FLIT_PACKET 50
+#define SIZE_FLIT_PACKET 5
 
 struct table {
 	int destiny;
@@ -39,5 +39,10 @@ struct flits {
 typedef flits flit;
 
 typedef queue<flit> fila_flits;
+
+struct packet {
+	flit flit_packet[SIZE_FLIT_PACKET];
+	int destiny;
+};
 
 #endif 

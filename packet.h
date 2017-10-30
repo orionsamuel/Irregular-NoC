@@ -7,5 +7,5 @@ class packet{
 		sc_int<32> destiny;
 	packet();
 	~packet();
-	void set_flit_packet(flit flit_packet[SIZE_FLIT_PACKET]);
+	void set_flit_packet();
 };

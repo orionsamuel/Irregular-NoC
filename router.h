@@ -17,11 +17,7 @@ SC_MODULE(router){
 	sc_in<bool> clk{"clk"};
 
 	//Portas do Roteador;
-	flit in_portN; 
-	flit in_portE;
-	flit in_portS;
-	flit in_portW;
-	flit in_portL;
+	flit in_port[5]; 
 
 	flit out_port[5];
 	flit out_portN;
@@ -129,11 +125,11 @@ SC_MODULE(router){
 
 	void map_bf(){
 
-		bfN->din = in_portN;
-		bfE->din = in_portE;
-		bfS->din = in_portS;
-		bfW->din = in_portW;
-		bfL->din = in_portL;
+		bfN->din = in_port[0];
+		bfE->din = in_port[1];
+		bfS->din = in_port[2];
+		bfW->din = in_port[3];
+		bfL->din = in_port[4];
 
 	}
 
