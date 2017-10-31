@@ -20,7 +20,6 @@ SC_MODULE(router){
 	flit in_port[5]; 
 
 	flit out_port[5];
-	flit out_portN;
 
 	//Tabela de roteamento
 	routing_table tabela;
@@ -421,7 +420,7 @@ SC_MODULE(router){
 
 
 		if((portDestiny[1].read() == NORTH) && (arbN->priority == EAST)){
-			out_portN = bfE->dout;
+			out_port[0] = bfE->dout;
 			out_val[0].write(1);
 			//cout << out_port[0].payload << endl;
 			arbN->bufferCircular[NORTH] = 0;

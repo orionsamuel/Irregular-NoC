@@ -45,4 +45,13 @@ struct packet {
 	int destiny;
 };
 
+struct trafegoRede {
+	int origem;
+	int destino;
+	int pacotes;
+	int deadline;
+};
+
+typedef vector <trafegoRede> trafego_rede; 
+
 #endif 
