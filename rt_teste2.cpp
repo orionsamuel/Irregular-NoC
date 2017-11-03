@@ -1,6 +1,6 @@
 #include "systemc.h"
 #include <iostream>
-#include "router.h"
+#include "router3.h"
 #include "parameters.h"
 
 
@@ -8,10 +8,9 @@ SC_MODULE(NoC){
 
 	sc_in<bool> clk;
 
-	router *rt[4];
-
 	int coreNumbers;
 
+	router *rt[4];
 	routing_table table[4];
 
 	void chaveamento_externo(){
@@ -46,6 +45,18 @@ SC_MODULE(NoC){
 		}
 	}
 
+	void set_packets(){
+		for(int i = 0; i < 4; i++){
+			rt[i]->in_val[4].write(1);
+			rt[i]->in_port[4].type = 1;
+			rt[i]->in_port[4].payload = (8 + i);
+			rt[i]->in_port[4].destiny = (i + 2);
+			//wait(3);
+			//rt[i]->in_port[4].type = 0;
+		}
+
+	}
+
 
 	SC_CTOR(NoC){
 		for(int i = 0; i < 4; i++){
@@ -57,7 +68,7 @@ SC_MODULE(NoC){
 		sensitive << clk.pos();
 		SC_METHOD(map_rede);
 		sensitive << clk.pos();
-
+		SC_CTHREAD(set_packets, clk.pos());
 	}
 };
 
@@ -71,66 +82,58 @@ int sc_main (int argc, char* argv[]){
 
 
 
-	NoC *rede;
-	rede = new NoC("rede");
-	rede->clk(clock);
+
+	NoC rede("NoC");
+	rede.clk(clock);
+
+	rede.rt[0]->position = 1;
+	rede.rt[1]->position = 2;
+	rede.rt[2]->position = 3;
+	rede.rt[3]->position = 4;
 
 	int coreNumbers = 4;
 
-	rede->coreNumbers = coreNumbers;
-
-	//Seta as posições dos roteadores
-	for(int i = 0; i < coreNumbers; i++){
-		rede->rt[i]->position = i;
-	}
+	rede.coreNumbers = coreNumbers;
 
 
 	//Preenchimento das tabelas de roteamento
 	for(int i = 0; i < coreNumbers; i++){
-		rede->table[i].push_back({rede->rt[i]->position, LOCAL, 0});
+		rede.table[i].push_back({rede.rt[i]->position, LOCAL, 0});
 		for(int j = 0; j < (coreNumbers - 1); j++){
 			if(i == 0){
-				rede->table[i].push_back({rede->rt[j+1]->position, NORTH, (j+1)});
+				rede.table[i].push_back({rede.rt[j+1]->position, NORTH, (j+1)});
 			}else if(i == (coreNumbers - 1)){
-				rede->table[i].push_back({rede->rt[j]->position, SOUTH, (coreNumbers - 1 - j)});
+				rede.table[i].push_back({rede.rt[j]->position, SOUTH, (coreNumbers - 1 - j)});
 			}else if((i == 1) && (i != (coreNumbers - 1))){
 				if(j == 0){
-					rede->table[i].push_back({rede->rt[i-1]->position, SOUTH, 1});
+					rede.table[i].push_back({rede.rt[i-1]->position, SOUTH, 1});
 				}else{
-					rede->table[i].push_back({rede->rt[i+1]->position, EAST, j});
+					rede.table[i].push_back({rede.rt[i+1]->position, EAST, j});
 				}
 			}else if(((i % 2) == 1) && (i != (coreNumbers - 1))){
 				if(j < i){
-					rede->table[i].push_back({rede->rt[j]->position, SOUTH, (i - j)});
+					rede.table[i].push_back({rede.rt[j]->position, SOUTH, (i - j)});
 				}else if((j > i) or (j == i)){
-					rede->table[i].push_back({rede->rt[j+1]->position, EAST, (j - i + 1)});
+					rede.table[i].push_back({rede.rt[j+1]->position, EAST, (j - i + 1)});
 				}
 			}else if(((i % 2) == 0) && (i != (coreNumbers - 1))){
 				if(j < i){
-					rede->table[i].push_back({rede->rt[j]->position, WEST, (i - j)});
+					rede.table[i].push_back({rede.rt[j]->position, WEST, (i - j)});
 				}else if((j > i) or (j == i)){
-					rede->table[i].push_back({rede->rt[j+1]->position, NORTH, (j - i + 1)});	
+					rede.table[i].push_back({rede.rt[j+1]->position, NORTH, (j - i + 1)});	
 				}
 			}			
 		}	
 	}
 
-
-	rede->rt[0]->in_val[4].write(1);
-
-	rede->rt[0]->in_port[4].type = 1;
-	rede->rt[0]->in_port[4].payload = 8;
-	rede->rt[0]->in_port[4].destiny = 2;
-
-	/*rede.rt[2]->in_val[4].write(1);
-
-	rede.rt[2]->in_port[4].type = 1;
-	rede.rt[2]->in_port[4].payload = 10;
-	rede.rt[2]->in_port[4].destiny = 3;*/
 	
+
 	sc_start(500, SC_NS);
 
-	//cout << rede.rt[2]->out_port[4].destiny << endl;
-	cout << rede->rt[1]->rtgS->portDestiny << endl;	
+
+	cout << rede.rt[0]->out_port[4].payload << endl;
+	cout << rede.rt[1]->out_port[4].payload << endl;
+	cout << rede.rt[2]->out_port[4].payload << endl;
+	cout << rede.rt[3]->out_port[4].payload << endl;			
 
 }

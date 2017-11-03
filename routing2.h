@@ -1,21 +1,20 @@
-#ifndef ROUTING_H_INCLUDED
-#define ROUTING_H_INCLUDED
+#include "systemc.h"
 #include "parameters.h"
 #include <iostream>
 
 using namespace std;
 
-class routing{
-public:
+SC_MODULE(routing){
+	sc_int<32> counter;
 	routing_table tabela;
-	int destiny; //Entra o endereço do roteador destino
+	sc_signal<sc_int<32> > destiny; //Entra o endereço do roteador destino
 	int portDestiny; //Retorna a porta por onde o pacote deve passar
-
-
+	
+	
 
 	int tableAcess(){
 		for(int i = 0; i < tabela.size(); i++){
-			if(tabela[i].destiny == destiny){
+			if(tabela[i].destiny == destiny.read()){
 				portDestiny = tabela[i].port;
 			}
 		}
@@ -23,10 +22,7 @@ public:
 	}
 
 
-	routing(){
+	SC_CTOR(routing){
 
-    }
+	}	
 };
-
-
-#endif // ROUTING_H_INCLUDED

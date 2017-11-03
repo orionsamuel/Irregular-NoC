@@ -1,7 +1,7 @@
 #include "systemc.h"
 #include <iostream>
 #include <vector>
-#include "routing.h"
+#include "routing3.h"
 #include "parameters.h"
 
 using namespace std;
@@ -9,23 +9,39 @@ using namespace std;
 int sc_main (int argc, char* argv[]){
 
 	sc_clock clock("Clock", 10, SC_NS, 0.5);
-	sc_signal<sc_int<32> > portDestiny;
-	routing_table table0;
+	routing_table table[4];
 
-	table0.push_back({8, WEST, 5});
-	table0.push_back({4, EAST, 2});
-	table0.push_back({8, NORTH, 8});
-	table0.push_back({1, EAST, 1});
+	table[0].push_back({1, LOCAL, 0});
+	table[0].push_back({2, NORTH, 1});
+	table[0].push_back({3, NORTH, 2});
+	table[0].push_back({4, NORTH, 3});
 
-	routing rtg("routing");
-	rtg.clk(clock);
-	rtg.destiny.write(8);
-	rtg.tabela = table0;
+	table[1].push_back({2, LOCAL, 0});
+	table[1].push_back({1, SOUTH, 1});
+	table[1].push_back({3, EAST, 1});
+	table[1].push_back({4, EAST, 2});
+
+	table[2].push_back({3, LOCAL, 0});
+	table[2].push_back({1, WEST, 2});
+	table[2].push_back({2, WEST, 1});
+	table[2].push_back({4, NORTH, 1});
+
+	table[3].push_back({4, LOCAL, 0});
+	table[3].push_back({1, SOUTH, 3});
+	table[3].push_back({2, SOUTH, 2});
+	table[3].push_back({3, SOUTH, 1});
+
+	routing rtg;
+	//rtg.clk(clock);
+	rtg.destiny = 1;
+	rtg.tabela = table[0];
+
 
 	sc_start(50, SC_NS);
 
+	int destino = rtg.tableAcess();
+
 	cout << rtg.tabela.size() << endl;
-	cout << rtg.counter << endl;
-	cout << rtg.portDestiny.read() << endl;
+	cout << destino << endl;
 
 }

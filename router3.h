@@ -125,7 +125,7 @@ SC_MODULE(router){
 		if(bfL->wok.read() == 1){
 			fcL->out_ack.write(1);
 		}
-				
+
 	}
 
 	void map_bf(){
@@ -319,27 +319,22 @@ SC_MODULE(router){
 			out_portNN = bfN->dout;
 			out_val[0].write(1);
 			arbN->bufferCircular[0] = 0;
-			bfN->rd.write(0);
 		}else if(portDestiny[0] == EAST){
 			out_portNE = bfN->dout;
 			out_val[1].write(1);
-			arbE->bufferCircular[1] = 0;
-			bfN->rd.write(0);
+			arbE->bufferCircular[1] = 0;;
 		}else if(portDestiny[0] == SOUTH){
 			out_portNS = bfN->dout;
 			out_val[2].write(1);
 			arbS->bufferCircular[2] = 0;
-			bfN->rd.write(0);
 		}else if(portDestiny[0] == WEST){
 			out_portNW = bfN->dout;
 			out_val[3].write(1);
 			arbW->bufferCircular[3] = 0;
-			bfN->rd.write(0);
 		}else if(portDestiny[0]  == LOCAL){
 			out_portNL = bfN->dout;
 			out_val[4].write(1);
 			arbL->bufferCircular[4] = 0;
-			bfN->rd.write(0);
 		}
 
 
@@ -348,27 +343,22 @@ SC_MODULE(router){
 			out_portEN = bfE->dout;
 			out_val[0].write(1);
 			arbN->bufferCircular[0] = 0;
-			bfE->rd.write(0);
 		}else if(portDestiny[1] == EAST){
 			out_portEE = bfE->dout;
 			out_val[1].write(1);
 			arbE->bufferCircular[1] = 0;
-			bfE->rd.write(0);
 		}else if(portDestiny[1] == SOUTH){
 			out_portES = bfE->dout;
 			out_val[2].write(1);
 			arbS->bufferCircular[2] = 0;
-			bfE->rd.write(0);
 		}else if(portDestiny[1] == WEST){
 			out_portEW = bfE->dout;
 			out_val[3].write(1);
 			arbW->bufferCircular[3] = 0;
-			bfE->rd.write(0);
 		}else if(portDestiny[1] == LOCAL){
 			out_portEL = bfE->dout;
 			out_val[4].write(1);
 			arbL->bufferCircular[4] = 0;
-			bfE->rd.write(0);
 		}
 
 
@@ -377,27 +367,22 @@ SC_MODULE(router){
 			out_portSN = bfS->dout;
 			out_val[0].write(1);
 			arbN->bufferCircular[0] = 0;
-			bfS->rd.write(0);
 		}else if(portDestiny[2] == EAST){
 			out_portSE = bfS->dout;		
 			out_val[1].write(1);
 			arbE->bufferCircular[1] = 0;
-			bfS->rd.write(0);
 		}else if(portDestiny[2] == SOUTH){
 			out_portSS = bfS->dout;
 			out_val[2].write(1);
 			arbS->bufferCircular[2] = 0;
-			bfS->rd.write(0);
 		}else if(portDestiny[2] == WEST){
 			out_portSW = bfS->dout;
 			out_val[3].write(1);
 			arbW->bufferCircular[3] = 0;
-			bfS->rd.write(0);
 		}else if(portDestiny[2] == LOCAL){
 			out_portSL = bfS->dout;
 			out_val[4].write(1);
 			arbL->bufferCircular[4] = 0;
-			bfS->rd.write(0);
 		}
 
 
@@ -406,27 +391,22 @@ SC_MODULE(router){
 			out_portWN = bfW->dout;
 			out_val[0].write(1);
 			arbN->bufferCircular[0] = 0;
-			bfW->rd.write(0);
 		}else if(portDestiny[3] == EAST){
 			out_portWE = bfW->dout;
 			out_val[1].write(1);
 			arbE->bufferCircular[1] = 0;
-			bfW->rd.write(0);
 		}else if(portDestiny[3] == SOUTH){
 			out_portWS = bfW->dout;
 			out_val[2].write(1);
 			arbS->bufferCircular[2] = 0;
-			bfW->rd.write(0);
 		}else if(portDestiny[3] == WEST){
 			out_portWW = bfW->dout;
 			out_val[3].write(1);
 			arbW->bufferCircular[3] = 0;
-			bfW->rd.write(0);
 		}else if(portDestiny[3] == LOCAL){
 			out_portWL = bfW->dout;
 			out_val[4].write(1);
 			arbL->bufferCircular[4] = 0;
-			bfW->rd.write(0);
 		}
 
 
@@ -435,94 +415,100 @@ SC_MODULE(router){
 			out_portLN = bfL->dout;
 			out_val[0].write(1);
 			arbN->bufferCircular[0] = 0;
-			bfL->rd.write(0);
 		}else if(portDestiny[4] == EAST){
 			out_portLE = bfL->dout;
 			out_val[1].write(1);
 			arbE->bufferCircular[1] = 0;
-			bfL->rd.write(0);
 		}else if(portDestiny[4] == SOUTH){
 			out_portLS = bfL->dout;
 			out_val[2].write(1);
 			arbS->bufferCircular[2] = 0;
-			bfL->rd.write(0);
 		}else if(portDestiny[4] == WEST){
 			out_portLW = bfL->dout;	
 			out_val[3].write(1);
 			arbW->bufferCircular[3] = 0;
-			bfL->rd.write(0);
 		}else if(portDestiny[4] == LOCAL){
 			out_portLL = bfL->dout;
 			out_val[4].write(1);
 			arbL->bufferCircular[4] = 0;
-			bfL->rd.write(0);
 		}
 
 		
 
 		if(out_portNN.type != 0){
 			out_port[0] = out_portNN;
-		}else if(out_portNE.type != 0){
+		}
+		if(out_portNE.type != 0){
 			out_port[1] = out_portNE;
-		}else if(out_portNS.type != 0){
+		}
+		if(out_portNS.type != 0){
 			out_port[2] = out_portNS;
-		}else if(out_portNW.type != 0){
+		}
+		if(out_portNW.type != 0){
 			out_port[3] = out_portNW;
-			cout << out_port[3].payload;
-		}else if(out_portNL.type != 0){
+		}
+		if(out_portNL.type != 0){
 			out_port[4] = out_portNL;
 		}
 
 
 		if(out_portEN.type != 0){
 			out_port[0] = out_portEN;
-		}else if(out_portEE.type != 0){
+		}
+		if(out_portEE.type != 0){
 			out_port[1] = out_portEE;
-		}else if(out_portES.type != 0){
+		}
+		if(out_portES.type != 0){
 			out_port[2] = out_portES;
-		}else if(out_portEW.type != 0){
+		}
+		if(out_portEW.type != 0){
 			out_port[3] = out_portEW;
-		}else if(out_portEL.type != 0){
+		}
+		if(out_portEL.type != 0){
 			out_port[4] = out_portEL;
 		}
 
 
 		if(out_portSN.type != 0){
 			out_port[0] = out_portSN;
-		}else if(out_portSE.type != 0){
+		}
+		if(out_portSE.type != 0){
 			out_port[1] = out_portSE;
-		}else if(out_portSS.type != 0){
+		}
+		if(out_portSS.type != 0){
 			out_port[2] = out_portSS;
-		}else if(out_portSW.type != 0){
+		}
+		if(out_portSW.type != 0){
 			out_port[3] = out_portSW;
-		}else if(out_portSL.type != 0){
+		}
+		if(out_portSL.type != 0){
 			out_port[4] = out_portSL;
 		}
 
 
 		if(out_portWN.type != 0){
 			out_port[0] = out_portWN;
-		}else if(out_portWE.type != 0){
+		}
+		if(out_portWE.type != 0){
 			out_port[1] = out_portWE;
-		}else if(out_portWS.type != 0){
+		}if(out_portWS.type != 0){
 			out_port[2] = out_portWS;
-		}else if(out_portWW.type != 0){
+		}if(out_portWW.type != 0){
 			out_port[3] = out_portWW;
-		}else if(out_portWL.type != 0){
+		}if(out_portWL.type != 0){
 			out_port[4] = out_portWL;
 		}
 
 
 		if(out_portLN.type != 0){
 			out_port[0] = out_portLN;
-		}else if(out_portLE.type != 0){
+		}if(out_portLE.type != 0){
 			out_port[1] = out_portLE;
-		}else if(out_portLS.type != 0){
+		}if(out_portLS.type != 0){
 			out_port[2] = out_portLS;
-		}else if(out_portLW.type != 0){
+		}if(out_portLW.type != 0){
 			out_port[3] = out_portLW;
-			cout << out_port[3].payload;
-		}else if(out_portLL.type != 0){
+		}if(out_portLL.type != 0){
 			out_port[4] = out_portLL;
 		}
 		

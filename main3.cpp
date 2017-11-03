@@ -213,7 +213,6 @@ int sc_main (int argc, char* argv[]){
 	}
 	
 
-	//Seta os pacotes para o trafego
 	for(int h = 0; h < coreNumbers; h++){
 		for(int i = 0; i < trafego.size(); i++){
 			if(rede.rt[h]->position == trafego[i].origem){
@@ -227,11 +226,27 @@ int sc_main (int argc, char* argv[]){
 			}
 		}
 	}
+
+
+	//Seta os pacotes para o trafego
+	/*for(int h = 0; h < coreNumbers; h++){
+		for(int i = 0; i < trafego.size(); i++){
+			for(int j = 0; j < trafego[0].pacotes; j++){
+				for(int k = 0; k < SIZE_FLIT_PACKET; k++){
+					if(rede.rt[h]->position == trafego[i].origem){
+						rede.rt[h]->in_val[4].write(1);
+						rede.rt[h]->in_port[4] = pkt[i][j].flit_packet[k];
+						//sc_start(trafego[1].deadline, SC_NS);
+					}
+				}
+			}
+		}	
+	}
 	
 	
-	//sc_start(trafego[1].deadline, SC_NS);
+	sc_start(trafego[1].deadline, SC_NS);*/
 
 	cout << rede.rt[1]->out_port[4].type << endl;
 	cout << rede.rt[3]->out_port[4].type << endl;
-	cout << rede.rt[2]->bfS->dout.type << endl;
+	cout << rede.rt[1]->count << endl;
 }

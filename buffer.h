@@ -17,12 +17,12 @@ SC_MODULE (Buffer){
 	flit din; //Entrada data + bop + eop
 	flit dout; //Saída que vai para o roteamento
 
-	sc_in<bool> clk{"clk"};
+	sc_in<bool> clk;
 
-	sc_signal<sc_int<32> > wr{"wr"}; //Entrada que vem do controle de fluxo
-	sc_signal<sc_int<32> > wok{"wok"}; //Saída que volta para o controle de fluxo
-	sc_signal<sc_int<32> > rd{"rd"}; //Entrada que vem do chaveamento
-	sc_signal<sc_int<32> > rok{"rok"}; //Saída do chaveamento
+	sc_signal<sc_int<32>, SC_MANY_WRITERS> wr; //Entrada que vem do controle de fluxo
+	sc_signal<sc_int<32> > wok; //Saída que volta para o controle de fluxo
+	sc_signal<sc_int<32>, SC_MANY_WRITERS> rd; //Entrada que vem do chaveamento
+	sc_signal<sc_int<32> > rok; //Saída do chaveamento
 	
 	sc_int<32> length;
 
@@ -40,7 +40,7 @@ SC_MODULE (Buffer){
 	void remove(){
 		if (flits.size() < 1){
 			rok.write(0); // queue is empty. Nothing to remove
-		} else if (rd.read() == 1){
+		} else {
 			rok.write(1);
 			dout = flits.front();
 			flits.pop();
