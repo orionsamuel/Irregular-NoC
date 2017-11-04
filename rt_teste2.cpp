@@ -46,13 +46,13 @@ SC_MODULE(NoC){
 	}
 
 	void set_packets(){
-		for(int i = 0; i < 4; i++){
+		for(int i = 2; i < 4; i++){
 			rt[i]->in_val[4].write(1);
 			rt[i]->in_port[4].type = 1;
 			rt[i]->in_port[4].payload = (8 + i);
-			rt[i]->in_port[4].destiny = (i + 2);
-			//wait(3);
-			//rt[i]->in_port[4].type = 0;
+			rt[i]->in_port[4].destiny = (i - 1);
+			wait(3);
+			rt[i]->in_port[4].type = 0;
 		}
 
 	}
