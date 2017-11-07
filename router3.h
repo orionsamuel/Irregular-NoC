@@ -520,7 +520,7 @@ SC_MODULE(router){
 	}
 
 	void deadline_count(){
-		if(out_port[4].type == 2){
+		if(out_port[4].type == 3){
 			count = count + 1;
 		}
 	}

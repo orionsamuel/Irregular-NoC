@@ -10,11 +10,13 @@ SC_MODULE(NoC){
 
 	int coreNumbers;
 
-	router *rt[4];
-	routing_table table[4];
+	trafego_rede trafego;
+
+	router *rt[25];
+	routing_table table[25];
 
 	void chaveamento_externo(){
-		for(int i = 0; i < 3; i++){
+		for(int i = 0; i < (coreNumbers - 1); i++){
 			if(i == 1){
 				rt[i]->in_port[1] = rt[i+1]->out_port[3];
 				rt[i]->in_val[1].write(rt[i+1]->out_val[3]);
@@ -46,15 +48,36 @@ SC_MODULE(NoC){
 	}
 
 	void set_packets(){
-		for(int i = 2; i < 4; i++){
-			rt[i]->in_val[4].write(1);
-			rt[i]->in_port[4].type = 1;
-			rt[i]->in_port[4].payload = (8 + i);
-			rt[i]->in_port[4].destiny = (i - 1);
-			wait(3);
-			rt[i]->in_port[4].type = 0;
+		for(int i = 0; i < coreNumbers; i++){
+			for(int j = 0; j < trafego.size(); j++){
+				if(rt[i]->position == trafego[j].origem){
+					rt[i]->in_val[4].write(1);
+					for(int k = 0; k < trafego[j].pacotes; k++){
+						for(int l = 0; l < 5; l++){
+							if(l == 0){
+								rt[i]->in_port[4].type = BEGIN_PACKET;
+								rt[i]->in_port[4].payload = (8 + i);
+								rt[i]->in_port[4].destiny = trafego[j].destino;
+								wait(3);
+								rt[i]->in_port[4].type = 0;
+							}else if(l == 4){
+								rt[i]->in_port[4].type = END_PACKET;
+								rt[i]->in_port[4].payload = (8 + i);
+								rt[i]->in_port[4].destiny = trafego[j].destino;
+								wait(3);
+								rt[i]->in_port[4].type = 0;
+							}else{
+								rt[i]->in_port[4].type = INSTRUCTION;
+								rt[i]->in_port[4].payload = (8 + i);
+								rt[i]->in_port[4].destiny = trafego[j].destino;
+								wait(3);
+								rt[i]->in_port[4].type = 0;
+							}
+						}
+					}
+				}
+			}
 		}
-
 	}
 
 
@@ -78,22 +101,88 @@ int sc_main (int argc, char* argv[]){
 
 	sc_clock clock("Clock", 10, SC_NS);
 
-	routing_table table[4];
-
-
-
-
 	NoC rede("NoC");
 	rede.clk(clock);
 
-	rede.rt[0]->position = 1;
-	rede.rt[1]->position = 2;
-	rede.rt[2]->position = 3;
-	rede.rt[3]->position = 4;
+	int coreNumbers;
+	char linha[100];
+	string temp0;
+	string temp1;
+	string temp2;
+	string temp3;
+	int temp00;
+	int temp01;
+	int temp02;
+	int temp03;
+	int count;
 
-	int coreNumbers = 4;
+	trafego_rede trafego;
+
+	ifstream arquivoTrafego;
+
+
+	//Instanciamento do arquivo de trafego
+	arquivoTrafego.open("teste01.txt", ios_base::in);
+	if (arquivoTrafego.is_open()){
+		arquivoTrafego.getline(linha, 100);
+		coreNumbers = atoi(linha);
+		while(arquivoTrafego.getline(linha, 100)){
+			temp0 = "";
+			temp1 = "";
+			temp2 = "";
+			temp3 = "";
+			for(count = 0; count < 100; count++){
+				if(linha[count] != ' '){
+					temp0 = temp0 + linha[count];
+				}else{
+					break;
+				}
+			}
+			temp00 = atoi(temp0.c_str());
+			count = count + 1;
+
+			for(; count < 100; count ++){
+				if(linha[count] != ' '){
+					temp1 = temp1 + linha[count];
+				}else{
+					break;
+				}
+			}
+			temp01 = atoi(temp1.c_str());
+			count = count + 1;
+
+			for(; count < 100; count ++){
+				if(linha[count] != ' '){
+					temp2 = temp2 + linha[count];
+				}else{
+					break;
+				}
+			}
+			temp02 = atoi(temp2.c_str());
+			count = count + 1;
+
+			for(; count < 100; count ++){
+				if(linha[count] != ' '){
+					temp3 = temp3 + linha[count];
+				}else{
+					break;
+				}
+			}
+			temp03 = atoi(temp3.c_str());
+
+			trafego.push_back({temp00, temp01, temp02, temp03});
+		}
+	}
+
+
 
 	rede.coreNumbers = coreNumbers;
+	rede.trafego = trafego;
+
+
+	for(int i = 0; i < coreNumbers; i++){
+		rede.rt[i]->position = i + 1;
+	}
 
 
 	//Preenchimento das tabelas de roteamento
@@ -108,7 +197,7 @@ int sc_main (int argc, char* argv[]){
 				if(j == 0){
 					rede.table[i].push_back({rede.rt[i-1]->position, SOUTH, 1});
 				}else{
-					rede.table[i].push_back({rede.rt[i+1]->position, EAST, j});
+					rede.table[i].push_back({rede.rt[j+1]->position, EAST, j});
 				}
 			}else if(((i % 2) == 1) && (i != (coreNumbers - 1))){
 				if(j < i){
@@ -128,12 +217,12 @@ int sc_main (int argc, char* argv[]){
 
 	
 
-	sc_start(500, SC_NS);
+	sc_start(trafego[1].deadline, SC_NS);
 
 
 	cout << rede.rt[0]->out_port[4].payload << endl;
 	cout << rede.rt[1]->out_port[4].payload << endl;
 	cout << rede.rt[2]->out_port[4].payload << endl;
-	cout << rede.rt[3]->out_port[4].payload << endl;			
+	cout << rede.rt[3]->out_port[4].payload << endl;
 
 }
